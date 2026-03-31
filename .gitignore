@@ -1,0 +1,39 @@
+# =========================
+# Entornos Virtuales
+# =========================
+venv/
+env/
+.venv/
+
+# =========================
+# Archivos compilados de Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =========================
+# Archivos de Flask y Secretos
+# =========================
+instance/
+.env
+
+# =========================
+# Bases de Datos y Datos Locales
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+*.csv
+
+# =========================
+# Archivos del Sistema (Linux/Ubuntu)
+# =========================
+*~
+.directory
+
+# =========================
+# Editores de código (Opcional)
+# =========================
+.vscode/
+.idea/
