@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados del Simulacro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #003366; 
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --bg-color: #f4f7f6;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); padding: 40px 20px; color: #333; text-align: center; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary-color); margin-top: 0; }
+        .score-box { background-color: #e9ecef; padding: 20px; border-radius: 8px; margin: 20px 0; font-size: 1.2em; }
+        .score-big { font-size: 3em; font-weight: bold; display: block; margin: 10px 0; }
+        .excelente { color: var(--success-color); }
+        .regular { color: var(--warning-color); }
+        .peligro { color: var(--danger-color); }
+        
+        /* Contenedor de las gráficas */
+        .charts-container { display: flex; flex-wrap: wrap; justify-content: space-around; margin-top: 30px; gap: 20px;}
+        .chart-box { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px; width: 45%; min-width: 300px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        
+        .feedback-section { text-align: left; margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; }
+        .feedback-section h3 { color: var(--danger-color); }
+        .materia-item { background-color: #fff3cd; color: #856404; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 5px solid var(--warning-color); }
+        .btn-volver { display: inline-block; background-color: var(--primary-color); color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 30px; transition: 0.3s; }
+        .btn-volver:hover { background-color: #00509e; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Dictamen del Simulacro</h1>
+        
+        <div class="score-box">
+            <span>Tu Calificación</span>
+            <span class="score-big {% if porcentaje >= 80 %}excelente{% elif porcentaje >= 60 %}regular{% else %}peligro{% endif %}">
+                {{ calificacion }} / 10
+            </span>
+            <p>Obtuviste <strong>{{ aciertos }} aciertos</strong> de {{ total }} preguntas ({{ porcentaje }}%).</p>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-box">
+                <h3>Precisión General</h3>
+                <canvas id="graficaDona"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Rendimiento por Materia (%)</h3>
+                <canvas id="graficaRadar"></canvas>
+            </div>
+        </div>
+
+        <div class="feedback-section">
+            {% if areas_mejora %}
+                <h3>Áreas de Oportunidad</h3>
+                <p>Materias con errores o donde utilizaste el procedimiento de ayuda:</p>
+                {% for materia, cantidad in areas_mejora.items() %}
+                    <div class="materia-item">
+                        <strong>{{ materia }}:</strong> {{ cantidad }} áreas a repasar.
+                    </div>
+                {% endfor %}
+            {% else %}
+                <h3 style="color: #28a745;">¡Examen Perfecto!</h3>
+                <p>Nivel excelente en todas las áreas evaluadas.</p>
+            {% endif %}
+        </div>
+
+        <a href="/" class="btn-volver">Volver al Panel Principal</a>
+    </div>
+
+    <script>
+        // Obtenemos los datos calculados desde Flask
+        const aciertos = {{ aciertos }};
+        const errores = {{ total }} - aciertos;
+        
+        // Jinja2 inyecta el JSON de manera segura con el filtro 'safe'
+        const materias = {{ nombres_materias | safe }};
+        const puntajesRadar = {{ puntajes_radar | safe }};
+
+        // 1. Gráfica de Dona (General)
+        const ctxDona = document.getElementById('graficaDona').getContext('2d');
+        new Chart(ctxDona, {
+            type: 'doughnut',
+            data: {
+                labels: ['Aciertos', 'Errores / Ayudas'],
+                datasets: [{
+                    data: [aciertos, errores],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    hoverOffset: 4
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // 2. Gráfica de Radar (Desempeño por área)
+        const ctxRadar = document.getElementById('graficaRadar').getContext('2d');
+        new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: materias,
+                datasets: [{
+                    label: '% de Dominio',
+                    data: puntajesRadar,
+                    backgroundColor: 'rgba(0, 51, 102, 0.2)', // Azul transparente
+                    borderColor: '#003366',
+                    pointBackgroundColor: '#003366',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#003366'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    r: {
+                        angleLines: { display: true },
+                        suggestedMin: 0,
+                        suggestedMax: 100 // Escala del 0 al 100%
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

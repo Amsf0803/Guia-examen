@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resolviendo Simulacro</title>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; padding-top: 60px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .pregunta-card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 25px; background-color: #fafafa; }
+        .materia-badge { display: inline-block; background-color: #003366; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; margin-bottom: 10px; }
+        .opciones label { display: block; margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
+        .opciones label:hover { background-color: #e9ecef; }
+        .btn-ayuda { background-color: #ff9800; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-size: 0.9em; }
+        .procedimiento { display: none; margin-top: 15px; padding: 15px; background-color: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px; font-size: 0.9em; }
+        .btn-enviar { background-color: #28a745; color: white; padding: 15px 20px; font-size: 1.1em; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 20px; }
+        
+        /* ESTILOS DEL RELOJ FLOTANTE */
+        #reloj {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #003366;
+            color: white;
+            padding: 15px 25px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        /* Clase para cuando quede poco tiempo */
+        .tiempo-peligro {
+            background-color: #dc3545 !important;
+            animation: latido 1s infinite;
+        }
+        @keyframes latido {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="reloj">Cargando tiempo...</div>
+
+<div class="container">
+    <h2>Simulacro en progreso</h2>
+    <p>Total de preguntas generadas: {{ preguntas|length }}</p>
+
+    <form id="form-examen" action="/calificar" method="POST">
+        
+        {% for p in preguntas %}
+        <input type="hidden" name="preguntas_ids" value="{{ p.id }}">
+        
+        <div class="pregunta-card">
+            <span class="materia-badge">{{ p.materia }}</span>
+            <p><strong>{{ loop.index }}. {{ p.texto_pregunta | safe }}</strong></p>            
+            
+            {% if p.imagen %}
+                <div style="text-align: center; margin: 15px 0;">
+                    {% if p.imagen.endswith('.png') or p.imagen.endswith('.jpg') or p.imagen.endswith('.jpeg') %}
+                        <img src="{{ url_for('static', filename='img/' + p.imagen) }}" alt="Apoyo visual" style="max-width: 100%; border-radius: 5px;">
+                    {% else %}
+                        <div style="font-size: 1.3em; font-weight: bold; color: #003366; background-color: #e9ecef; padding: 15px; border-radius: 8px; display: inline-block; letter-spacing: 2px;">
+                            {{ p.imagen | safe }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            <div class="opciones">
+                <label>
+                    <input type="radio" name="resp_{{ p.id }}" value="A"> A) 
+                    {% if p.opcion_a.endswith('.png') or p.opcion_a.endswith('.jpg') %}
+                        <img src="{{ url_for('static', filename='img/' + p.opcion_a) }}" alt="Opción A" style="max-height: 80px; vertical-align: middle; margin-left: 10px;">
+                    {% else %}
+                        {{ p.opcion_a | safe }}
+                    {% endif %}
+                </label>
+
+                <label>
+                    <input type="radio" name="resp_{{ p.id }}" value="B"> B) 
+                    {% if p.opcion_b.endswith('.png') or p.opcion_b.endswith('.jpg') %}
+                        <img src="{{ url_for('static', filename='img/' + p.opcion_b) }}" alt="Opción B" style="max-height: 80px; vertical-align: middle; margin-left: 10px;">
+                    {% else %}
+                        {{ p.opcion_b | safe }}
+                    {% endif %}
+                </label>
+
+                <label>
+                    <input type="radio" name="resp_{{ p.id }}" value="C"> C) 
+                    {% if p.opcion_c.endswith('.png') or p.opcion_c.endswith('.jpg') %}
+                        <img src="{{ url_for('static', filename='img/' + p.opcion_c) }}" alt="Opción C" style="max-height: 80px; vertical-align: middle; margin-left: 10px;">
+                    {% else %}
+                        {{ p.opcion_c | safe }}
+                    {% endif %}
+                </label>
+
+                <label>
+                    <input type="radio" name="resp_{{ p.id }}" value="D"> D) 
+                    {% if p.opcion_d.endswith('.png') or p.opcion_d.endswith('.jpg') %}
+                        <img src="{{ url_for('static', filename='img/' + p.opcion_d) }}" alt="Opción D" style="max-height: 80px; vertical-align: middle; margin-left: 10px;">
+                    {% else %}
+                        {{ p.opcion_d | safe }}
+                    {% endif %}
+                </label>
+            </div>
+
+            <div id="ayuda-{{ p.id }}">
+                {% if p.procedimiento %}
+                    <p>{{ p.procedimiento | safe }}</p>
+                {% else %}
+                    <textarea id="input-proc-{{ p.id }}" style="width: 100%; height: 80px; margin-bottom: 10px;" placeholder="No hay procedimiento. Escríbelo aquí para guardarlo..."></textarea>
+                    <button type="button" onclick="guardarProc({{ p.id }})" style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Guardar Procedimiento</button>
+                {% endif %}
+            </div>
+
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn-enviar">Terminar Examen y Calificar</button>
+    </form>
+
+
+</div>
+
+<script>
+    // --- LÓGICA DEL BOTÓN DE AYUDA ---
+    function mostrarAyuda(preguntaId) {
+        var divAyuda = document.getElementById('ayuda_' + preguntaId);
+        var inputAyuda = document.getElementById('input_ayuda_' + preguntaId);
+        
+        if (divAyuda.style.display === 'none' || divAyuda.style.display === '') {
+            divAyuda.style.display = 'block';
+            inputAyuda.value = '1';
+        }
+    }
+
+    // --- LÓGICA DEL RELOJ REGRESIVO ---
+    // Jinja2 nos inyecta los minutos, los pasamos a segundos
+    let tiempoRestante = {{ tiempo_minutos }} * 60; 
+    let relojDiv = document.getElementById('reloj');
+    let formulario = document.getElementById('form-examen');
+
+    function actualizarReloj() {
+        let horas = Math.floor(tiempoRestante / 3600);
+        let minutos = Math.floor((tiempoRestante % 3600) / 60);
+        let segundos = tiempoRestante % 60;
+
+        // Formatear para que siempre tenga 2 dígitos (ej. 09:05)
+        let textoHora = horas > 0 ? (horas < 10 ? "0" + horas + ":" : horas + ":") : "";
+        let textoMinutos = minutos < 10 ? "0" + minutos : minutos;
+        let textoSegundos = segundos < 10 ? "0" + segundos : segundos;
+
+        relojDiv.innerText = textoHora + textoMinutos + ":" + textoSegundos;
+
+        // Si faltan menos de 5 minutos (300 segundos), se pone rojo y palpita
+        if (tiempoRestante <= 300) {
+            relojDiv.classList.add("tiempo-peligro");
+        }
+
+        if (tiempoRestante <= 0) {
+            clearInterval(intervalo);
+            relojDiv.innerText = "¡TIEMPO AGOTADO!";
+            // Autoenviar el formulario
+            formulario.submit(); 
+        } else {
+            tiempoRestante--;
+        }
+    }
+
+    // Ejecutar actualizarReloj cada 1000 milisegundos (1 segundo)
+    actualizarReloj(); // Llamada inicial para que no tarde 1 seg en mostrarse
+    let intervalo = setInterval(actualizarReloj, 1000);
+</script>
+
+</body>
+</html>
