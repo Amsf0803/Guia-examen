@@ -60,6 +60,8 @@
 
     <form id="form-examen" action="/calificar" method="POST">
         
+        <input type="hidden" name="nivel" value="{{ nivel }}">
+        
         {% for p in preguntas %}
         <input type="hidden" name="preguntas_ids" value="{{ p.id }}">
         
@@ -132,24 +134,26 @@
         <button type="submit" class="btn-enviar">Terminar Examen y Calificar</button>
     </form>
 
-
 </div>
 
 <script>
-// ==========================================
+    // Jinja inyecta la ruta correcta dependiendo del nivel
+    const urlRetorno = "{{ url_for('menu_superior') if nivel == 'Superior' else url_for('menu_medio_superior') }}";
+
+    // ==========================================
     // --- LÓGICA ANTI-TRAMPA MEJORADA ---
     // ==========================================
 
     // 1. Castigo por recargar: Detecta si la página fue recargada a la fuerza (F5/Refresh)
     const navEntries = performance.getEntriesByType("navigation");
     if (navEntries.length > 0 && navEntries[0].type === "reload") {
-        window.location.href = "/"; // Lo expulsa al inicio inmediatamente
+        window.location.href = urlRetorno; // Lo expulsa al inicio correspondiente
     }
 
     // 2. Evitar caché oculta y botón de "Atrás"
     window.addEventListener('pageshow', function(event) {
         if (event.persisted || sessionStorage.getItem('estado_examen') === 'entregado') {
-            window.location.href = "/";
+            window.location.href = urlRetorno;
         }
     });
 
@@ -174,17 +178,6 @@
     // ==========================================
 
     
-    // --- LÓGICA DEL BOTÓN DE AYUDA ---
-    function mostrarAyuda(preguntaId) {
-        var divAyuda = document.getElementById('ayuda_' + preguntaId);
-        var inputAyuda = document.getElementById('input_ayuda_' + preguntaId);
-        
-        if (divAyuda.style.display === 'none' || divAyuda.style.display === '') {
-            divAyuda.style.display = 'block';
-            inputAyuda.value = '1';
-        }
-    }
-
     // --- LÓGICA DEL RELOJ REGRESIVO ---
     // Jinja2 nos inyecta los minutos, los pasamos a segundos
     let tiempoRestante = {{ tiempo_minutos }} * 60; 
@@ -223,7 +216,7 @@
     let intervalo = setInterval(actualizarReloj, 1000);
 
 
-// --- LÓGICA PARA GUARDAR PROCEDIMIENTO ---
+    // --- LÓGICA PARA GUARDAR PROCEDIMIENTO ---
     function guardarProc(id) {
         const proc = document.getElementById('input-proc-' + id).value;
         
@@ -249,7 +242,6 @@
             console.error("Error de conexión:", error);
         });
     }
-
 
 </script>
 

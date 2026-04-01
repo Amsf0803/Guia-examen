@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador IPN</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- ESTILOS DE LA CABECERA PROFESIONAL --- */
+        .main-header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 20px 40px; 
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-bottom: 4px solid #6c1d45;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .logo-izq { flex: 1; }
+        .logo-izq img { height: 80px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+
+        .titulo-central { flex: 2; text-align: center; }
+        .titulo-central h1 {
+            margin: 0; 
+            color: #6c1d45; 
+            font-size: 1.8rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+        .titulo-central p {
+            margin: 8px 0 0 0; 
+            color: #555; 
+            font-size: 0.85rem; 
+            font-style: italic;
+        }
+
+        .logos-der { 
+            flex: 1; 
+            display: flex; 
+            gap: 20px; 
+            align-items: center; 
+            justify-content: flex-end; 
+        }
+        .logos-der img { height: 65px; width: auto; transition: transform 0.3s; }
+        .logos-der img:hover { transform: scale(1.1); }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        .contenido {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            padding: 40px 20px;
+        }
+
+        .bienvenida {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 1s;
+        }
+        .bienvenida h2 {
+            color: #003366;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        .bienvenida p {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .contenedor-niveles {
+            display: flex;
+            gap: 30px;
+            max-width: 900px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .tarjeta-nivel {
+            background: white;
+            border-radius: 12px;
+            padding: 40px 30px;
+            text-align: center;
+            width: 350px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: #333;
+            border-top: 6px solid #003366;
+        }
+        .tarjeta-nivel:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        .tarjeta-nivel.medio {
+            border-top-color: #17a2b8;
+        }
+        .tarjeta-nivel h2 {
+            margin-top: 0;
+            color: #003366;
+        }
+        .tarjeta-nivel.medio h2 {
+            color: #17a2b8;
+        }
+        .icono {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        .btn-ingresar {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: #003366;
+            color: white;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .tarjeta-nivel.medio .btn-ingresar {
+            background-color: #17a2b8;
+        }
+        .tarjeta-nivel:hover .btn-ingresar {
+            background-color: #001f3f;
+        }
+        .tarjeta-nivel.medio:hover .btn-ingresar {
+            background-color: #117a8b;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo-izq">
+            <img src="{{ url_for('static', filename='img/logo-ipn-color.png') }}" alt="IPN">
+        </div>
+
+        <div class="titulo-central">
+            <h1>Simulador de Admisión</h1>
+            <p>Laboratorio de Inteligencia Artificial - CECyT 16</p>
+        </div>
+
+        <div class="logos-der">
+            <img src="{{ url_for('static', filename='img/LIA.png') }}" alt="LIA">
+            <img src="{{ url_for('static', filename='img/16.png') }}" alt="CECyT 16">
+        </div>
+    </header>
+
+    <main class="contenido">
+        <div class="bienvenida">
+            <h2>¡Bienvenido al Simulador Oficial!</h2>
+            <p>Selecciona el nivel académico al que deseas ingresar</p>
+        </div>
+
+        <div class="contenedor-niveles">
+            <a href="/menu_medio_superior" class="tarjeta-nivel medio">
+                <div class="icono">🎒</div>
+                <h2>Nivel Medio Superior</h2>
+                <p>Ingreso a CECyT (Vocacionales) y CET. Prepárate con temas de secundaria.</p>
+                <div class="btn-ingresar">Ingresar al Simulador</div>
+            </a>
+
+            <a href="/menu_superior" class="tarjeta-nivel">
+                <div class="icono">🎓</div>
+                <h2>Nivel Superior</h2>
+                <p>Ingreso a Licenciaturas e Ingenierías. Prepárate con temas de bachillerato.</p>
+                <div class="btn-ingresar">Ingresar al Simulador</div>
+            </a>
+        </div>
+    </main>
+
+</body>
+</html>

@@ -2,51 +2,44 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Agregar Pregunta al Banco</title>
+    <title>Agregar Pregunta - Simulador LIA</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #00509e; }
+        h2 { color: #00509e; text-align: center; }
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; }
-        input[type="text"], textarea, select { width: 100%; padding: 8px; box-sizing: border-box; }
-        button { background-color: #003366; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #00509e; }
-        a{
-            color: #fff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .return{
-            background-color: #003366;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            
-        }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        input[type="text"], textarea, select { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
+        .btn-guardar { background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-size: 1.1em; font-weight: bold; }
+        .btn-guardar:hover { background-color: #218838; }
+        .btn-volver { display: block; text-align: center; margin-top: 20px; padding: 10px; background-color: #003366; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; }
+        .btn-volver:hover { background-color: #00509e; }
+        .info-nivel { text-align: center; background: #e9ecef; padding: 5px; border-radius: 4px; margin-bottom: 20px; font-weight: bold; color: #003366; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Añadir Nueva Pregunta</h2>
+        <div class="info-nivel">Agregando contenido para: {{ nivel_actual }}</div>
+        
         <form method="POST">
             <div class="form-group">
-                <label>Materia:</label>
-                <select name="materia" required>
-                    <option value="Matemáticas">Matemáticas</option>
-                    <option value="Física">Física</option>
-                    <option value="Química">Química</option>
-                    <option value="Competencia Escrita">Competencia Escrita</option>
-                    <option value="Competencia Lectora">Competencia Lectora</option>
-                    <option value="Historia">Historia</option>
-                    <option value="Inglés">Inglés</option>
+                <label>Nivel Académico:</label>
+                <select name="nivel" id="nivel_select" required onchange="actualizarMaterias()">
+                    <option value="Superior" {% if nivel_actual == 'Superior' %}selected{% endif %}>Superior (Universidad)</option>
+                    <option value="Medio Superior" {% if nivel_actual == 'Medio Superior' %}selected{% endif %}>Medio Superior (CECyT)</option>
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label>Materia:</label>
+                <select name="materia" id="materia_select" required>
+                    </select>
             </div>
             
             <div class="form-group">
-                <label>Pregunta:</label>
-                <textarea name="texto_pregunta" rows="3" required></textarea>
+                <label>Pregunta (Acepta LaTeX con $):</label>
+                <textarea name="texto_pregunta" rows="3" required placeholder="Ej: Hallar el valor de $x$ en..."></textarea>
             </div>
 
             <div class="form-group"><label>Opción A:</label><input type="text" name="opcion_a" required></div>
@@ -66,12 +59,36 @@
 
             <div class="form-group">
                 <label>Procedimiento / Ayuda (Opcional):</label>
-                <textarea name="procedimiento" rows="4"></textarea>
+                <textarea name="procedimiento" rows="4" placeholder="Explica el paso a paso aquí..."></textarea>
             </div>
 
-            <button type="submit">Guardar Pregunta</button>
+            <button type="submit" class="btn-guardar">💾 Guardar Pregunta en Banco</button>
         </form>
-        <br> <br> <button class="return"><a href="/">Regresar a la pagina principal</a></button>
+        
+        <a href="{{ url_retorno }}" class="btn-volver">⬅ Regresar al Panel Principal</a>
     </div>
+
+    <script>
+        function actualizarMaterias() {
+            const nivel = document.getElementById('nivel_select').value;
+            const materiaSelect = document.getElementById('materia_select');
+            
+            const materiasSuperior = ["Matemáticas", "Física", "Química", "Competencia Escrita", "Competencia Lectora", "Historia", "Inglés"];
+            const materiasMedio = ["Matemáticas", "Física", "Química", "Biología", "Historia", "Formación Cívica y Ética", "Español"];
+            
+            let opciones = nivel === "Superior" ? materiasSuperior : materiasMedio;
+            
+            materiaSelect.innerHTML = "";
+            opciones.forEach(mat => {
+                let opt = document.createElement('option');
+                opt.value = mat;
+                opt.innerHTML = mat;
+                materiaSelect.appendChild(opt);
+            });
+        }
+        
+        // Ejecutar al cargar la página
+        window.onload = actualizarMaterias;
+    </script>
 </body>
 </html>

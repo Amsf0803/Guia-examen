@@ -105,7 +105,7 @@
         </div>
 
         <div class="titulo-central" style="text-align: center;">
-            <h1 style="margin: 0; color: #6c1d45; font-size: 1.5rem;">Simulador de Examen IPN</h1>
+            <h1 style="margin: 0; color: #6c1d45; font-size: 1.5rem;">Simulador IPN - Nivel {{ nivel }}</h1>
             <small>Laboratorio de Inteligencia Artificial</small>
         </div>
 
@@ -148,6 +148,8 @@
             <form action="/iniciar_examen" method="POST">
                 <input type="hidden" name="modalidad" value="general">
                 
+                <input type="hidden" name="nivel" value="{{ nivel }}">
+                
                 <div class="form-group">
                     <label for="tiempo">Duración del examen:</label>
                     <select name="tiempo" id="tiempo" required>
@@ -168,6 +170,8 @@
             
             <form action="/iniciar_examen" method="POST">
                 <input type="hidden" name="modalidad" value="materia">
+                
+                <input type="hidden" name="nivel" value="{{ nivel }}">
                 
                 <div class="form-group">
                     <label for="materia">Selecciona la materia:</label>
@@ -192,13 +196,28 @@
         </div>
     </div>
 
+
     <div class="menu-flotante">
-        <p>¿Tienes nuevas guías? <a href="/agregar_pregunta">+ Añadir preguntas al banco</a></p>
+        <p>¿Tienes nuevas guías? <a href="/agregar_pregunta/{{ nivel }}">+ Añadir preguntas al banco</a></p>
     </div>
+    
     <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
-        <a href="https://forms.gle/JFNzC1U75pU2s4HB7" target="_blank" style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <a href="{{ link_material }}" target="_blank" style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             ¿Quieres acceder al Material de apoyo 2026?
         </a>
     </div>
+    
+    <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
+        <a href="/estudio/{{ nivel }}" style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            ¿Quieres estudiar los temas principales del examen desde aquí?
+        </a>
+    </div>
+
+    <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
+        <a href="/" style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            Cambiar de Nivel Académico
+        </a>
+    </div>
+
 </body>
 </html>

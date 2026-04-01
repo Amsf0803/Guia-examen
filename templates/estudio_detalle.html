@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tema.titulo }} - Estudio</title>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .contenedor { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #003366; }
+        .badge-materia { background-color: #00509e; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.9em; font-weight: bold; }
+        
+        .caja-teoria { background-color: #eaf4fc; border-left: 5px solid #00509e; padding: 15px; margin: 20px 0; border-radius: 4px; line-height: 1.6;}
+        
+        .caja-ejercicio { border: 1px solid #ddd; padding: 20px; margin-top: 20px; border-radius: 6px; }
+        .titulo-ejercicio { color: #28a745; margin-top: 0; }
+        .solucion-btn { background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 15px; transition: 0.3s;}
+        .solucion-btn:hover { background-color: #218838; }
+        .pasos-solucion { display: none; margin-top: 15px; background-color: #f9f9f9; padding: 15px; border-left: 4px solid #28a745; }
+        
+        .nav-botones { margin-top: 30px; display: flex; justify-content: space-between; }
+        .btn { padding: 10px 20px; text-decoration: none; color: white; background-color: #003366; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor">
+        <span class="badge-materia">{{ materia }}</span>
+        <h1>{{ tema.titulo }}</h1>
+
+        <h3>Teoría y Conceptos Clave</h3>
+        <div class="caja-teoria">
+            {{ tema.explicacion | safe }}
+        </div>
+
+        <h3>Ejercicios Resueltos</h3>
+        <p style="color: #666; font-size: 0.9em;">Intenta resolverlos por tu cuenta y luego haz clic en "Ver Solución Paso a Paso" para comprobar tu resultado.</p>
+
+        {% for ej in tema.ejercicios %}
+        <div class="caja-ejercicio">
+            <h4 class="titulo-ejercicio">Ejercicio {{ loop.index }}</h4>
+            <p style="font-size: 1.1em;">{{ ej.pregunta | safe }}</p>
+            
+            <button class="solucion-btn" onclick="mostrarSolucion({{ loop.index }})">👁️ Ver Solución Paso a Paso</button>
+            
+            <div id="solucion-{{ loop.index }}" class="pasos-solucion">
+                {{ ej.solucion | safe }}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="nav-botones">
+            <a href="{{ url_retorno }}" class="btn">⬅ Volver al Menú de Estudio</a>
+            
+            <form action="/iniciar_examen" method="POST" style="margin: 0;">
+                <input type="hidden" name="modalidad" value="materia">
+                <input type="hidden" name="materia" value="{{ materia }}">
+                <input type="hidden" name="cantidad" value="10">
+                <input type="hidden" name="nivel" value="{{ nivel }}">
+                
+                <button type="submit" class="btn" style="background-color: #d9534f; border: none; font-size: 1em; cursor: pointer; font-family: inherit;">
+                    📝 ¡Examen rápido de {{ materia }} (10 pregs)!
+                </button>
+            </form>
+        </div>
+        
+    </div>
+
+    <script>
+        function mostrarSolucion(id) {
+            var div = document.getElementById("solucion-" + id);
+            var btn = event.target;
+            if (div.style.display === "none" || div.style.display === "") {
+                div.style.display = "block";
+                btn.innerHTML = "Ocultar Solución ▲";
+                if (window.MathJax) { MathJax.typesetPromise(); } // Recarga fórmulas si estaban ocultas
+            } else {
+                div.style.display = "none";
+                btn.innerHTML = "👁️ Ver Solución Paso a Paso";
+            }
+        }
+    </script>
+</body>
+</html>

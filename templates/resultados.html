@@ -16,25 +16,6 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 
     <style>
-        .btn-revisar { background-color: #003366; color: white; padding: 15px 20px; font-size: 1.1em; border: none; border-radius: 5px; cursor: pointer; margin-top: 30px; width: 100%; transition: 0.3s; font-weight: bold;}
-        .btn-revisar:hover { background-color: #00509e; }
-        
-        #seccion-revision { display: none; margin-top: 40px; text-align: left; }
-        
-        .revision-card { background: white; padding: 25px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative; border-left: 6px solid #ccc; }
-        .revision-card.correcta { border-left-color: #28a745; }
-        .revision-card.incorrecta { border-left-color: #dc3545; }
-        .revision-card.blanco { border-left-color: #ffc107; }
-        
-        .icono-estado { position: absolute; top: 20px; right: 20px; font-size: 1.5em; }
-        
-        .opcion-row { padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; background-color: #fafafa;}
-        .opcion-row.elegida-correcta { background-color: #d4edda; border-color: #c3e6cb; }
-        .opcion-row.elegida-incorrecta { background-color: #f8d7da; border-color: #f5c6cb; }
-        
-        .feedback-box { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #17a2b8; border-radius: 4px; }
-    </style>
-    <style>
         :root {
             --primary-color: #003366; 
             --success-color: #28a745;
@@ -60,6 +41,24 @@
         .materia-item { background-color: #fff3cd; color: #856404; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 5px solid var(--warning-color); }
         .btn-volver { display: inline-block; background-color: var(--primary-color); color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 30px; transition: 0.3s; }
         .btn-volver:hover { background-color: #00509e; }
+
+        .btn-revisar { background-color: #003366; color: white; padding: 15px 20px; font-size: 1.1em; border: none; border-radius: 5px; cursor: pointer; margin-top: 30px; width: 100%; transition: 0.3s; font-weight: bold;}
+        .btn-revisar:hover { background-color: #00509e; }
+        
+        #seccion-revision { display: none; margin-top: 40px; text-align: left; }
+        
+        .revision-card { background: white; padding: 25px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative; border-left: 6px solid #ccc; }
+        .revision-card.correcta { border-left-color: #28a745; }
+        .revision-card.incorrecta { border-left-color: #dc3545; }
+        .revision-card.blanco { border-left-color: #ffc107; }
+        
+        .icono-estado { position: absolute; top: 20px; right: 20px; font-size: 1.5em; }
+        
+        .opcion-row { padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; background-color: #fafafa;}
+        .opcion-row.elegida-correcta { background-color: #d4edda; border-color: #c3e6cb; }
+        .opcion-row.elegida-incorrecta { background-color: #f8d7da; border-color: #f5c6cb; }
+        
+        .feedback-box { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #17a2b8; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -101,19 +100,90 @@
             {% endif %}
         </div>
 
-        <a href="/" class="btn-volver">Volver al Panel Principal</a>
+        <a href="{{ url_for('menu_superior') if nivel == 'Superior' else url_for('menu_medio_superior') }}" class="btn-volver">Volver al Menú Principal</a>
+
+        <button class="btn-revisar" onclick="toggleRevision()">Revisar Respuestas Detalladas ▼</button>
+
+        <div id="seccion-revision">
+            <h2 style="text-align: center; color: #003366;">Revisión del Examen</h2>
+            
+            {% for detalle in detalles_examen %}
+            {% set p = detalle.pregunta %}
+            
+            <div class="revision-card {% if detalle.en_blanco %}blanco{% elif detalle.es_correcta %}correcta{% else %}incorrecta{% endif %}">
+                
+                <span class="icono-estado">
+                    {% if detalle.en_blanco %} ⚠️ <span style="font-size: 0.6em; color: #ffc107;">(Sin responder)</span>
+                    {% elif detalle.es_correcta %} ✔️
+                    {% else %} ❌
+                    {% endif %}
+                </span>
+
+                <p><span style="background-color: #003366; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; margin-right: 10px;">{{ p.materia }}</span></p>
+                <p><strong>{{ loop.index }}. {{ p.texto_pregunta | safe }}</strong></p>
+                
+                {% if p.imagen %}
+                <div style="text-align: center; margin: 15px 0;">
+                    {% if p.imagen.endswith('.png') or p.imagen.endswith('.jpg') %}
+                        <img src="{{ url_for('static', filename='img/' + p.imagen) }}" alt="Apoyo visual" style="max-width: 100%; border-radius: 5px;">
+                    {% else %}
+                        <div style="font-size: 1.2em; font-weight: bold; background-color: #e9ecef; padding: 15px; border-radius: 8px; display: inline-block;">
+                            {{ p.imagen | safe }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="opciones-revision">
+                    {% for letra, texto_opcion in [('A', p.opcion_a), ('B', p.opcion_b), ('C', p.opcion_c), ('D', p.opcion_d)] %}
+                        {% set es_elegida = (detalle.respuesta_usuario == letra) %}
+                        {% set es_la_correcta = (p.respuesta_correcta == letra) %}
+                        
+                        <div class="opcion-row {% if es_elegida and es_la_correcta %}elegida-correcta{% elif es_elegida and not es_la_correcta %}elegida-incorrecta{% endif %}">
+                            <div>
+                                <strong>{{ letra }})</strong> 
+                                {% if texto_opcion.endswith('.png') or texto_opcion.endswith('.jpg') %}
+                                    <img src="{{ url_for('static', filename='img/' + texto_opcion) }}" style="max-height: 80px; vertical-align: middle; margin-left: 10px;">
+                                {% else %}
+                                    {{ texto_opcion | safe }}
+                                {% endif %}
+                            </div>
+                            
+                            {% if es_elegida %}
+                                {% if es_la_correcta %}
+                                    <span style="font-size: 1.5em;">✔️</span>
+                                {% else %}
+                                    <span style="font-size: 1.5em;">❌</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% if not detalle.es_correcta %}
+                    <div class="feedback-box">
+                        <p style="color: #00509e; font-size: 1.1em;"><strong>Respuesta correcta: {{ p.respuesta_correcta }}</strong></p>
+                        {% if p.procedimiento %}
+                            <p><strong>Procedimiento:</strong></p>
+                            <div>{{ p.procedimiento | safe }}</div>
+                        {% else %}
+                            <p style="color: #666; font-style: italic;">(No hay procedimiento registrado para esta pregunta)</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+            </div>
+            {% endfor %}
+        </div>
     </div>
 
     <script>
-        // Obtenemos los datos calculados desde Flask
+        // --- 1. CONFIGURACIÓN DE GRÁFICAS ---
         const aciertos = {{ aciertos }};
         const errores = {{ total }} - aciertos;
-        
-        // Jinja2 inyecta el JSON de manera segura con el filtro 'safe'
         const materias = {{ nombres_materias | safe }};
         const puntajesRadar = {{ puntajes_radar | safe }};
 
-        // 1. Gráfica de Dona (General)
         const ctxDona = document.getElementById('graficaDona').getContext('2d');
         new Chart(ctxDona, {
             type: 'doughnut',
@@ -128,7 +198,6 @@
             options: { responsive: true }
         });
 
-        // 2. Gráfica de Radar (Desempeño por área)
         const ctxRadar = document.getElementById('graficaRadar').getContext('2d');
         new Chart(ctxRadar, {
             type: 'radar',
@@ -137,7 +206,7 @@
                 datasets: [{
                     label: '% de Dominio',
                     data: puntajesRadar,
-                    backgroundColor: 'rgba(0, 51, 102, 0.2)', // Azul transparente
+                    backgroundColor: 'rgba(0, 51, 102, 0.2)',
                     borderColor: '#003366',
                     pointBackgroundColor: '#003366',
                     pointBorderColor: '#fff',
@@ -148,90 +217,12 @@
             options: {
                 responsive: true,
                 scales: {
-                    r: {
-                        angleLines: { display: true },
-                        suggestedMin: 0,
-                        suggestedMax: 100 // Escala del 0 al 100%
-                    }
+                    r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: 100 }
                 }
             }
         });
-    </script>
-    <button class="btn-revisar" onclick="toggleRevision()">Revisar Respuestas Detalladas ▼</button>
 
-    <div id="seccion-revision">
-        <h2 style="text-align: center; color: #003366;">Revisión del Examen</h2>
-        
-        {% for detalle in detalles_examen %}
-        {% set p = detalle.pregunta %}
-        
-        <div class="revision-card {% if detalle.en_blanco %}blanco{% elif detalle.es_correcta %}correcta{% else %}incorrecta{% endif %}">
-            
-            <span class="icono-estado">
-                {% if detalle.en_blanco %} ⚠️ <span style="font-size: 0.6em; color: #ffc107;">(Sin responder)</span>
-                {% elif detalle.es_correcta %} ✔️
-                {% else %} ❌
-                {% endif %}
-            </span>
-
-            <p><span style="background-color: #003366; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; margin-right: 10px;">{{ p.materia }}</span></p>
-            <p><strong>{{ loop.index }}. {{ p.texto_pregunta | safe }}</strong></p>
-            
-            {% if p.imagen %}
-            <div style="text-align: center; margin: 15px 0;">
-                {% if p.imagen.endswith('.png') or p.imagen.endswith('.jpg') %}
-                    <img src="{{ url_for('static', filename='img/' + p.imagen) }}" alt="Apoyo visual" style="max-width: 100%; border-radius: 5px;">
-                {% else %}
-                    <div style="font-size: 1.2em; font-weight: bold; background-color: #e9ecef; padding: 15px; border-radius: 8px; display: inline-block;">
-                        {{ p.imagen | safe }}
-                    </div>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <div class="opciones-revision">
-                {% for letra, texto_opcion in [('A', p.opcion_a), ('B', p.opcion_b), ('C', p.opcion_c), ('D', p.opcion_d)] %}
-                    {% set es_elegida = (detalle.respuesta_usuario == letra) %}
-                    {% set es_la_correcta = (p.respuesta_correcta == letra) %}
-                    
-                    <div class="opcion-row {% if es_elegida and es_la_correcta %}elegida-correcta{% elif es_elegida and not es_la_correcta %}elegida-incorrecta{% endif %}">
-                        <div>
-                            <strong>{{ letra }})</strong> 
-                            {% if texto_opcion.endswith('.png') or texto_opcion.endswith('.jpg') %}
-                                <img src="{{ url_for('static', filename='img/' + texto_opcion) }}" style="max-height: 80px; vertical-align: middle; margin-left: 10px;">
-                            {% else %}
-                                {{ texto_opcion | safe }}
-                            {% endif %}
-                        </div>
-                        
-                        {% if es_elegida %}
-                            {% if es_la_correcta %}
-                                <span style="font-size: 1.5em;">✔️</span>
-                            {% else %}
-                                <span style="font-size: 1.5em;">❌</span>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-
-            {% if not detalle.es_correcta %}
-                <div class="feedback-box">
-                    <p style="color: #00509e; font-size: 1.1em;"><strong>Respuesta correcta: {{ p.respuesta_correcta }}</strong></p>
-                    {% if p.procedimiento %}
-                        <p><strong>Procedimiento:</strong></p>
-                        <div>{{ p.procedimiento | safe }}</div>
-                    {% else %}
-                        <p style="color: #666; font-style: italic;">(No hay procedimiento registrado para esta pregunta)</p>
-                    {% endif %}
-                </div>
-            {% endif %}
-            
-        </div>
-        {% endfor %}
-    </div>
-
-    <script>
+        // --- 2. MOSTRAR / OCULTAR REVISIÓN DETALLADA ---
         function toggleRevision() {
             var seccion = document.getElementById("seccion-revision");
             var btn = document.querySelector(".btn-revisar");
@@ -239,26 +230,21 @@
             if (seccion.style.display === "none" || seccion.style.display === "") {
                 seccion.style.display = "block";
                 btn.innerHTML = "Ocultar Revisión Detallada ▲";
-                // Forzar a MathJax a leer las fórmulas que estaban ocultas
-                if (window.MathJax) {
-                    MathJax.typesetPromise();
-                }
+                if (window.MathJax) { MathJax.typesetPromise(); }
             } else {
                 seccion.style.display = "none";
                 btn.innerHTML = "Revisar Respuestas Detalladas ▼";
             }
         }
 
-            // --- BLOQUEAR EL BOTÓN DE "ATRÁS" EN LOS RESULTADOS ---
-        // Empujamos un estado falso al historial del navegador
-        window.history.pushState(null, "", window.location.href);
+        // --- 3. LÓGICA ANTI-RETROCESO Y URL DINÁMICA ---
+        // Jinja inyecta la ruta de regreso correcta según el nivel
+        const urlRetorno = "{{ url_for('menu_superior') if nivel == 'Superior' else url_for('menu_medio_superior') }}";
         
-        // Si el usuario presiona la flecha de "Atrás", lo redirigimos al menú principal
+        window.history.pushState(null, "", window.location.href);
         window.onpopstate = function() {
-            window.location.href = "/";
+            window.location.href = urlRetorno;
         };
     </script>
-
-
 </body>
 </html>
