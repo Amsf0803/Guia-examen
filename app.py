@@ -132,26 +132,24 @@ def iniciar_examen():
 @app.route('/calificar', methods=['POST'])
 def calificar():
     datos_formulario = request.form
-    
-    # NUEVO: Obtenemos la lista de todas las preguntas que salieron en el examen
     lista_ids = request.form.getlist('preguntas_ids')
     total_preguntas = len(lista_ids)
     aciertos = 0
     
     areas_mejora = {}
     estadisticas_materias = {}
+    
+    # NUEVA LISTA: Guardará el resumen individual de cada pregunta
+    detalles_examen = []
 
-    # Iteramos sobre la lista de IDs del examen, NO sobre lo que mandó el formulario
     for id_str in lista_ids:
         pregunta_id = int(id_str)
-        
-        # Buscamos la respuesta del usuario. Si no contestó, devuelve None.
         respuesta_usuario = datos_formulario.get(f'resp_{pregunta_id}')
         vio_ayuda = datos_formulario.get(f'ayuda_vista_{pregunta_id}', '0')
         
         pregunta_db = db.session.get(Pregunta, pregunta_id)
         
-        if pregunta_db: # Por seguridad, verificamos que la pregunta exista
+        if pregunta_db: 
             materia = pregunta_db.materia
             
             if materia not in estadisticas_materias:
@@ -159,19 +157,25 @@ def calificar():
             
             estadisticas_materias[materia]['total'] += 1
             
-            # Evaluamos si la respuesta es correcta
             es_correcta = (respuesta_usuario == pregunta_db.respuesta_correcta)
+            en_blanco = (respuesta_usuario is None)
             
             if es_correcta and vio_ayuda == '0':
                 aciertos += 1
                 estadisticas_materias[materia]['aciertos'] += 1
             else:
-                # Si se equivocó, usó ayuda, o LA DEJÓ EN BLANCO (respuesta_usuario is None)
                 if materia not in areas_mejora:
                     areas_mejora[materia] = 0
                 areas_mejora[materia] += 1
 
-    # Calculamos la calificación basada en el total REAL de preguntas del examen
+            # NUEVO: Guardamos toda la info de esta pregunta para la revisión
+            detalles_examen.append({
+                'pregunta': pregunta_db,
+                'respuesta_usuario': respuesta_usuario,
+                'es_correcta': es_correcta and vio_ayuda == '0',
+                'en_blanco': en_blanco
+            })
+
     calificacion_escala_10 = (aciertos / total_preguntas) * 10 if total_preguntas > 0 else 0
     porcentaje = (aciertos / total_preguntas) * 100 if total_preguntas > 0 else 0
 
@@ -191,23 +195,23 @@ def calificar():
         calificacion=round(calificacion_escala_10, 1),
         areas_mejora=areas_mejora,
         nombres_materias=json.dumps(nombres_materias),
-        puntajes_radar=json.dumps(puntajes_radar)
+        puntajes_radar=json.dumps(puntajes_radar),
+        detalles_examen=detalles_examen  # <-- Pasamos la info al HTML
     )
-
 
 @app.route('/guardar_procedimiento', methods=['POST'])
 def guardar_procedimiento():
     data = request.json
     pregunta_id = data.get('id')
     nuevo_procedimiento = data.get('procedimiento')
-    
+
     pregunta = Pregunta.query.get(pregunta_id)
     if pregunta:
         pregunta.procedimiento = nuevo_procedimiento
         db.session.commit()
+        print(f"¡Procedimiento guardado para la pregunta {pregunta_id}!") # Agrega este print para depurar
         return {"status": "success"}, 200
     return {"status": "error"}, 400
-
 
 
 if __name__ == '__main__':
