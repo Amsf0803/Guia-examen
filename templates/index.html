@@ -149,6 +149,17 @@
                 <input type="hidden" name="modalidad" value="general">
                 
                 <input type="hidden" name="nivel" value="{{ nivel }}">
+
+                {% if nivel == 'Superior' %}
+                <div class="form-group">
+                    <label for="area">Área de Conocimiento:</label>
+                    <select name="area" id="area" required>
+                        <option value="Ingeniería y Ciencias Físico Matemáticas">Ingeniería y Ciencias Físico Matemáticas</option>
+                        <option value="Ciencias Médico Biológicas">Ciencias Médico Biológicas</option>
+                        <option value="Ciencias Sociales y Administrativas">Ciencias Sociales y Administrativas</option>
+                    </select>
+                </div>
+                {% endif %}
                 
                 <div class="form-group">
                     <label for="tiempo">Duración del examen:</label>

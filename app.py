@@ -216,13 +216,30 @@ def iniciar_examen():
         config_preguntas = {15: 12, 30: 25, 60: 50, 180: 140}
         total_objetivo = config_preguntas.get(tiempo_minutos, 12)
 
-        pesos = {
-            'Matemáticas': 37/140, 'Competencia Escrita': 20/140,
-            'Competencia Lectora': 20/140, 'Química': 17/140,
-            'Física': 17/140, 'Historia': 10/140,
-            'Inglés': 10/140, 'Biología': 9/140,
-            'Formación Cívica y Ética': 10/140, 'Español': 20/140 # Agregados para NMS
-        }
+        area = request.form.get('area')
+        if nivel == 'Superior':
+            if area == 'Ciencias Médico Biológicas':
+                pesos = {
+                    'Matemáticas': 33/140, 'Competencia Escrita': 20/140,
+                    'Competencia Lectora': 20/140, 'Química': 17/140,
+                    'Física': 13/140, 'Historia': 10/140,
+                    'Inglés': 10/140, 'Biología': 17/140
+                }
+            else:
+                pesos = {
+                    'Matemáticas': 37/140, 'Competencia Escrita': 20/140,
+                    'Competencia Lectora': 20/140, 'Química': 17/140,
+                    'Física': 17/140, 'Historia': 10/140,
+                    'Inglés': 10/140, 'Biología': 9/140
+                }
+        else:
+            pesos = {
+                'Matemáticas': 37/140, 'Competencia Escrita': 20/140,
+                'Competencia Lectora': 20/140, 'Química': 17/140,
+                'Física': 17/140, 'Historia': 10/140,
+                'Inglés': 10/140, 'Biología': 9/140,
+                'Formación Cívica y Ética': 10/140, 'Español': 20/140 # Agregados para NMS
+            }
 
         # CAMBIO: Ahora TODO filtra por "nivel=nivel"
         materias_en_db = [m[0] for m in db.session.query(Pregunta.materia).filter_by(nivel=nivel).distinct().all()]
