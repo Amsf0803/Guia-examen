@@ -39,8 +39,92 @@ temario_estudio = {
                 ]
             },
             {
+                "id": "mat_1_1_2",
+                "titulo": "1.1.2 Secuencias alfanuméricas",
+                "explicacion": "<p>Tema en desarrollo. En esta sección se estudia cómo analizar secuencias que mezclan letras y números con diferentes patrones combinados.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_1_1_3",
+                "titulo": "1.1.3 Expresiones generales",
+                "explicacion": "<p>Tema en desarrollo. Contiene el estudio para hallar la regla matemática general o el $n$-ésimo término para cualquier secuencia dada.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_1_2_1",
+                "titulo": "1.2.1 Secuencias con patrones geométricos",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_1_2_2",
+                "titulo": "1.2.2 Operaciones de simetría",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_1_2_3",
+                "titulo": "1.2.3 Perspectivas y cortes de figuras",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_1_3_1",
+                "titulo": "1.3.1 Medida de figuras y objetos",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_1_4_1",
+                "titulo": "1.4.1 Conjunto de datos y análisis de la información",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_1_5_1",
+                "titulo": "1.5.1 Resolución de problemas",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_1_1",
+                "titulo": "2.1.1 Propiedades (Números reales)",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_1_2",
+                "titulo": "2.1.2 Operaciones básicas",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_1_3",
+                "titulo": "2.1.3 Proporciones",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_2_1",
+                "titulo": "2.2.1 Lenguaje algebraico",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_2_2",
+                "titulo": "2.2.2 Expresiones fraccionarias",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_2_3",
+                "titulo": "2.2.3 Leyes de los exponentes y radicales",
+                "explicacion": "<p>Tema en desarrollo. $x^a \cdot x^b = x^{a+b}$ y otras propiedades de exponentes.</p>",
+                "ejercicios": []
+            },
+            {
                 "id": "mat_2_2_4",
-                "titulo": "2.2.4 Productos Notables",
+                "titulo": "2.2.4 Productos notables",
                 "explicacion": r"""
                 <p>Los <strong>productos notables</strong> son multiplicaciones de polinomios cuyos resultados pueden obtenerse directamente mediante reglas fijas, sin necesidad de hacer la multiplicación término a término.</p>
                 <ul>
@@ -75,6 +159,354 @@ temario_estudio = {
                         """
                     }
                 ]
+            },
+            {
+                "id": "mat_2_2_5",
+                "titulo": "2.2.5 Métodos de factorización",
+                "explicacion": "<p>Tema en desarrollo. Factor común, agrupación, trinomios cuadrados perfectos y otros métodos.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_3_1",
+                "titulo": "2.3.1 Concepto de función",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_3_2",
+                "titulo": "2.3.2 Propiedades de las igualdades",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_3_3",
+                "titulo": "2.3.3 Ecuaciones lineales",
+                "explicacion": "<p>Tema en desarrollo. Resolución de $ax + b = 0$.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_3_4",
+                "titulo": "2.3.4 Sistemas de ecuaciones lineales",
+                "explicacion": "<p>Tema en desarrollo. Sustitución, igualación, reducción, Cramer.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_4_1",
+                "titulo": "2.4.1 Concepto de función cuadrática",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_2_4_2",
+                "titulo": "2.4.2 Ecuaciones cuadráticas",
+                "explicacion": "<p>Tema en desarrollo. General: $\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_3_1_1",
+                "titulo": "3.1.1 Conceptos (Funciones exp y log)",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_3_1_2",
+                "titulo": "3.1.2 Propiedades (Funciones exp y log)",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_3_2_1",
+                "titulo": "3.2.1 Elementos básicos (Geometría)",
+                "explicacion": "<p>Tema en desarrollo. Puntos, rectas, planos y axiomas de Euclides.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_3_2_2",
+                "titulo": "3.2.2 Triángulos",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_3_2_3",
+                "titulo": "3.2.3 Polígonos",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_3_2_4",
+                "titulo": "3.2.4 Circunferencia (Geometría Euclidiana)",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_3_3_1",
+                "titulo": "3.3.1 Representación gráfica (Funciones trigonométricas)",
+                "explicacion": "<p>Tema en desarrollo. Gráficas de Seno, Coseno, Tangente.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_3_3_2",
+                "titulo": "3.3.2 Identidades trigonométricas",
+                "explicacion": "<p>Tema en desarrollo. Relaciones Pitagóricas, recíprocas y por cociente.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_3_3_3",
+                "titulo": "3.3.3 Razones trigonométricas",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_4_1_1",
+                "titulo": "4.1.1 Plano cartesiano",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_4_1_2",
+                "titulo": "4.1.2 Línea recta",
+                "explicacion": "<p>Tema en desarrollo. Pendiente, ecuación punto-pendiente $y-y_1=m(x-x_1)$.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_4_2_1",
+                "titulo": "4.2.1 Circunferencia (Geometría Analítica)",
+                "explicacion": "<p>Tema en desarrollo. Ecuación general y ordinaria de la circunferencia.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_4_2_2",
+                "titulo": "4.2.2 Parábola",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_4_2_3",
+                "titulo": "4.2.3 Elipse",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_4_2_4",
+                "titulo": "4.2.4 Hipérbola",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_4_3_1",
+                "titulo": "4.3.1 Plano polar",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_5_1_1",
+                "titulo": "5.1.1 Dominio y rango",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_5_1_2",
+                "titulo": "5.1.2 Desigualdades",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_5_1_3",
+                "titulo": "5.1.3 Definición de límite",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_5_1_4",
+                "titulo": "5.1.4 Teoremas de límites",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_5_1_5",
+                "titulo": "5.1.5 Límites al infinito",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_5_1_6",
+                "titulo": "5.1.6 Continuidad de una función",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_5_2_1",
+                "titulo": "5.2.1 Definición de derivada",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_5_2_2",
+                "titulo": "5.2.2 Interpretación geométrica",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_5_2_3",
+                "titulo": "5.2.3 Fórmulas de derivadas",
+                "explicacion": "<p>Tema en desarrollo. Derivadas básicas: polonimos, exponenciales y trigonométricas.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_5_2_4",
+                "titulo": "5.2.4 Regla de la cadena",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_5_2_5",
+                "titulo": "5.2.5 Máximos y mínimos",
+                "explicacion": "<p>Tema en desarrollo. Criterio de la primera y segunda derivada.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_6_1_1",
+                "titulo": "6.1.1 Definición de la antiderivada",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_6_1_2",
+                "titulo": "6.1.2 Constante de integración",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_6_1_3",
+                "titulo": "6.1.3 Fórmulas básicas de integración",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_6_2_1",
+                "titulo": "6.2.1 Por sustitución",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_6_2_2",
+                "titulo": "6.2.2 Integración por partes",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_6_2_3",
+                "titulo": "6.2.3 Sustitución trigonométrica",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_6_2_4",
+                "titulo": "6.2.4 Fracciones parciales",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_6_3_1",
+                "titulo": "6.3.1 Teorema fundamental del cálculo",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_6_3_2",
+                "titulo": "6.3.2 Área bajo la curva",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_6_3_3",
+                "titulo": "6.3.3 Longitud de arco",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_1_1",
+                "titulo": "7.1.1 Teoría de conjuntos",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_1_2",
+                "titulo": "7.1.2 Técnicas de conteo",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_1_3",
+                "titulo": "7.1.3 Espacios muestrales",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_1_4",
+                "titulo": "7.1.4 Probabilidad de un evento",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_1_5",
+                "titulo": "7.1.5 Eventos aleatorios",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_1_6",
+                "titulo": "7.1.6 Probabilidad condicional",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_1_7",
+                "titulo": "7.1.7 Eventos dependientes e independientes",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_1_8",
+                "titulo": "7.1.8 Teorema de Bayes",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_2_1",
+                "titulo": "7.2.1 Tablas de distribución de frecuencias",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_2_2",
+                "titulo": "7.2.2 Gráficas de datos",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_2_3",
+                "titulo": "7.2.3 Muestra y población",
+                "explicacion": "<p>Tema en desarrollo.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_2_4",
+                "titulo": "7.2.4 Medidas de tendencia central",
+                "explicacion": "<p>Tema en desarrollo. Media, mediana y moda.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_2_5",
+                "titulo": "7.2.5 Medidas de posicion",
+                "explicacion": "<p>Tema en desarrollo. Cuartiles, deciles y percentiles.</p>",
+                "ejercicios": []
+            },
+            {
+                "id": "mat_7_2_6",
+                "titulo": "7.2.6 Medidas de dispersion",
+                "explicacion": "<p>Tema en desarrollo. Varianza y desviación estándar.</p>",
+                "ejercicios": []
             }
         ]
     },

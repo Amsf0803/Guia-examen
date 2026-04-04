@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="icon" href="{{ url_for("static", filename="img/LIA_Mini.png") }}" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resultados del Simulacro</title>
@@ -119,7 +120,7 @@
                     {% endif %}
                 </span>
 
-                <p><span style="background-color: #003366; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; margin-right: 10px;">{{ p.materia }}</span></p>
+                <p><span style="background-color: #003366; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; margin-right: 10px;">{{ detalle.materia_limpia }}</span></p>
                 <p><strong>{{ loop.index }}. {{ p.texto_pregunta | safe }}</strong></p>
                 
                 {% if p.imagen %}

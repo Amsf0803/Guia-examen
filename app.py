@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -55,6 +55,23 @@ with app.app_context():
 
 from temario import temario_estudio
 
+# --- VERIFICACIÓN DE TÉRMINOS Y CONDICIONES ---
+@app.route('/terminos', methods=['GET', 'POST'])
+def terminos():
+    if request.method == 'POST':
+        session['terminos_aceptados'] = True
+        return redirect(url_for('seleccion_nivel'))
+    return render_template('terminos.html')
+
+@app.before_request
+def requerir_terminos():
+    rutas_permitidas = ['/terminos', '/login', '/register', '/logout']
+    if request.path in rutas_permitidas or request.path.startswith('/static/'):
+        return None
+    if not session.get('terminos_aceptados'):
+        flash('Debes aceptar los términos y condiciones antes de utilizar la plataforma.')
+        return redirect(url_for('terminos'))
+
 # --- RUTAS DE AUTENTICACIÓN ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -106,8 +123,42 @@ def dashboard():
 @app.route('/flashcards')
 @app.route('/flashcards/<nivel>')
 def flashcards(nivel="Superior"):
-    pregunta = Pregunta.query.filter_by(nivel=nivel).order_by(db.func.random()).first()
-    return render_template('flashcards.html', pregunta=pregunta, nivel=nivel)
+    area = request.args.get('area')
+    
+    materias_en_db = [m[0] for m in db.session.query(Pregunta.materia).filter_by(nivel=nivel).distinct().all()]
+    materias_validas = []
+    
+    for mat in materias_en_db:
+        base_mat = limpiar_materia(mat)
+        if obtener_materia_area(base_mat, area) == mat:
+            materias_validas.append(mat)
+            
+    if not materias_validas:
+        pregunta = Pregunta.query.filter_by(nivel=nivel).order_by(db.func.random()).first()
+    else:
+        pregunta = Pregunta.query.filter(
+            Pregunta.nivel == nivel,
+            Pregunta.materia.in_(materias_validas)
+        ).order_by(db.func.random()).first()
+        
+    materia_limpia = limpiar_materia(pregunta.materia) if pregunta else ""
+        
+    return render_template('flashcards.html', pregunta=pregunta, nivel=nivel, area=area, materia_limpia=materia_limpia)
+
+def limpiar_materia(materia):
+    if materia and (materia.endswith('_I') or materia.endswith('_M') or materia.endswith('_A')):
+        return materia[:-2]
+    return materia
+
+def obtener_materia_area(materia, area):
+    if materia in ['Física', 'Química', 'Biología'] and area:
+        if area == 'Ingeniería y Ciencias Físico Matemáticas':
+            return f"{materia}_I"
+        elif area == 'Ciencias Médico Biológicas':
+            return f"{materia}_M"
+        elif area == 'Ciencias Sociales y Administrativas':
+            return f"{materia}_A"
+    return materia
 
 # --- RUTAS DE LOS MENÚS PRINCIPALES ---
 @app.route('/')
@@ -130,9 +181,30 @@ def menu_medio_superior():
 # --- RUTAS DE ESTUDIO (AHORA RECIBEN EL NIVEL) ---
 @app.route('/estudio/<nivel>')
 def menu_estudio(nivel):
+    area = request.args.get('area')
     temario_nivel = temario_estudio.get(nivel, {})
+    
+    temario_filtrado = []
+    
+    if nivel == 'Superior' and area:
+        for mat, temas in temario_nivel.items():
+            base_mat = limpiar_materia(mat)
+            if obtener_materia_area(base_mat, area) == mat:
+                temario_filtrado.append({
+                    'original': mat,
+                    'limpia': base_mat,
+                    'temas': temas
+                })
+    else:
+        for mat, temas in temario_nivel.items():
+            temario_filtrado.append({
+                'original': mat,
+                'limpia': limpiar_materia(mat),
+                'temas': temas
+            })
+
     url_retorno = "/menu_superior" if nivel == "Superior" else "/menu_medio_superior"
-    return render_template('estudio_menu.html', temario=temario_nivel, nivel=nivel, url_retorno=url_retorno)
+    return render_template('estudio_menu.html', temario=temario_filtrado, nivel=nivel, area=area, url_retorno=url_retorno)
 
 @app.route('/estudio/<nivel>/<materia>/<tema_id>')
 def detalle_estudio(nivel, materia, tema_id):
@@ -174,14 +246,13 @@ def agregar_pregunta(nivel="Superior"):
 def iniciar_examen():
     modalidad = request.form.get('modalidad')
     nivel = request.form.get('nivel', 'Superior')
+    area = request.form.get('area')
     preguntas_seleccionadas = []
     
     if modalidad == 'general':
         tiempo_minutos = int(request.form.get('tiempo'))
         config_preguntas = {15: 12, 30: 25, 60: 50, 180: 140}
         total_objetivo = config_preguntas.get(tiempo_minutos, 12)
-
-        area = request.form.get('area')
         if nivel == 'Superior':
             if area == 'Ciencias Médico Biológicas':
                 pesos = {
@@ -206,22 +277,29 @@ def iniciar_examen():
                 'Formación Cívica y Ética': 10/140, 'Español': 20/140 # Agregados para NMS
             }
 
-        # CAMBIO: Ahora TODO filtra por "nivel=nivel"
+        # CAMBIO: Ahora TODO filtra por "nivel=nivel" y su validación si es por área
         materias_en_db = [m[0] for m in db.session.query(Pregunta.materia).filter_by(nivel=nivel).distinct().all()]
+        materias_validas = []
         for mat in materias_en_db:
+            base_mat = limpiar_materia(mat)
+            if obtener_materia_area(base_mat, area) == mat:
+                materias_validas.append(mat)
+
+        for mat in materias_validas:
             p = Pregunta.query.filter_by(materia=mat, nivel=nivel).order_by(db.func.random()).first()
             if p:
                 preguntas_seleccionadas.append(p)
 
         for materia, peso in pesos.items():
             if len(preguntas_seleccionadas) >= total_objetivo: break
+            materia_real = obtener_materia_area(materia, area)
             cant_ideal = max(1, int(total_objetivo * peso))
-            actuales = len([p for p in preguntas_seleccionadas if p.materia == materia])
+            actuales = len([p for p in preguntas_seleccionadas if p.materia == materia_real])
             if actuales < cant_ideal:
                 faltantes_materia = cant_ideal - actuales
                 ids_ya_usados = [p.id for p in preguntas_seleccionadas]
                 extras = Pregunta.query.filter(
-                    Pregunta.materia == materia,
+                    Pregunta.materia == materia_real,
                     Pregunta.nivel == nivel, # FILTRO DE NIVEL APLICADO
                     ~Pregunta.id.in_(ids_ya_usados)
                 ).order_by(db.func.random()).limit(faltantes_materia).all()
@@ -238,10 +316,11 @@ def iniciar_examen():
 
     elif modalidad == 'materia':
         materia_elegida = request.form.get('materia')
+        materia_real = obtener_materia_area(materia_elegida, area)
         cantidad = int(request.form.get('cantidad'))
         tiempo_minutos = int(cantidad * 1.5) 
         # FILTRO DE NIVEL APLICADO AQUÍ TAMBIÉN
-        preguntas_seleccionadas = Pregunta.query.filter_by(materia=materia_elegida, nivel=nivel).order_by(db.func.random()).limit(cantidad).all()
+        preguntas_seleccionadas = Pregunta.query.filter_by(materia=materia_real, nivel=nivel).order_by(db.func.random()).limit(cantidad).all()
     
     random.shuffle(preguntas_seleccionadas)
     return render_template('examen.html', preguntas=preguntas_seleccionadas, modalidad=modalidad, tiempo_minutos=tiempo_minutos, nivel=nivel)
@@ -268,27 +347,28 @@ def calificar():
         pregunta_db = db.session.get(Pregunta, pregunta_id)
         
         if pregunta_db: 
-            materia = pregunta_db.materia
+            materia_limpia = limpiar_materia(pregunta_db.materia)
             
-            if materia not in estadisticas_materias:
-                estadisticas_materias[materia] = {'total': 0, 'aciertos': 0}
+            if materia_limpia not in estadisticas_materias:
+                estadisticas_materias[materia_limpia] = {'total': 0, 'aciertos': 0}
             
-            estadisticas_materias[materia]['total'] += 1
+            estadisticas_materias[materia_limpia]['total'] += 1
             
             es_correcta = (respuesta_usuario == pregunta_db.respuesta_correcta)
             en_blanco = (respuesta_usuario is None)
             
             if es_correcta and vio_ayuda == '0':
                 aciertos += 1
-                estadisticas_materias[materia]['aciertos'] += 1
+                estadisticas_materias[materia_limpia]['aciertos'] += 1
             else:
-                if materia not in areas_mejora:
-                    areas_mejora[materia] = 0
-                areas_mejora[materia] += 1
+                if materia_limpia not in areas_mejora:
+                    areas_mejora[materia_limpia] = 0
+                areas_mejora[materia_limpia] += 1
 
             # NUEVO: Guardamos toda la info de esta pregunta para la revisión
             detalles_examen.append({
                 'pregunta': pregunta_db,
+                'materia_limpia': materia_limpia,
                 'respuesta_usuario': respuesta_usuario,
                 'es_correcta': es_correcta and vio_ayuda == '0',
                 'en_blanco': en_blanco

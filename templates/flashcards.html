@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="icon" href="{{ url_for("static", filename="img/LIA_Mini.png") }}" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Repaso Rápido Flashcards - IPN</title>
@@ -105,7 +106,7 @@
             
             <!-- FRENTE: PREGUNTA -->
             <div class="flashcard-face flashcard-front">
-                <span class="materia-badge">{{ pregunta.materia }}</span>
+                <span class="materia-badge">{{ materia_limpia }}</span>
                 <div class="question-text">{{ pregunta.texto_pregunta | safe }}</div>
                 
                 {% if pregunta.imagen %}
@@ -132,7 +133,7 @@
                     <label for="opt_D" class="opcion-label"><strong>D)</strong> {{ pregunta.opcion_d | safe }}</label>
                 </div>
 
-                <button class="btn-flip" onclick="verificarYVoltear()">Confirmar y Voltear Tarjeta ➔</button>
+                <button class="btn-flip" onclick="verificarYVoltear()">Girar para ver Respuesta ➔</button>
             </div>
 
             <!-- DORSO: RESPUESTA -->
@@ -148,12 +149,14 @@
                 {% else %}
                     <div style="text-align: center; color: #888; font-style: italic; margin-top: 20px;">No hay explicación detallada para esta pregunta.</div>
                 {% endif %}
+                
+                <button class="btn-flip" style="background-color: #6c757d; margin-top: 25px;" onclick="voltearAPregunta()">⬅ Voltear para ver Pregunta</button>
             </div>
 
         </div>
     </div>
     
-    <button class="btn-action" onclick="window.location.reload();">Siguiente Tarjeta ➔</button>
+    <button class="btn-action" onclick="window.location.href = '/flashcards/{{ nivel }}{% if area %}?area={{ area }}{% endif %}';">Siguiente Tarjeta ➔</button>
 
     <script>
         const respuestaCorrecta = "{{ pregunta.respuesta_correcta }}";
@@ -173,7 +176,21 @@
                 textoUsuario.innerHTML = `<span style="color: #ff9800;">⚠️ No seleccionaste ninguna opción</span>`;
             }
             
+            // Bloquear las opciones para que no se puedan cambiar
+            let opciones = document.querySelectorAll('input[name="res"]');
+            opciones.forEach(opcion => opcion.disabled = true);
+            
+            let etiquetas = document.querySelectorAll('.opcion-label');
+            etiquetas.forEach(etiqueta => {
+                etiqueta.style.cursor = 'default';
+                etiqueta.style.pointerEvents = 'none';
+            });
+            
             document.getElementById('flashcard').classList.add('is-flipped');
+        }
+
+        function voltearAPregunta() {
+            document.getElementById('flashcard').classList.remove('is-flipped');
         }
     </script>
     {% else %}

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="icon" href="{{ url_for("static", filename="img/LIA_Mini.png") }}" type="image/png">
     <meta charset="UTF-8">
     <title>Material de Estudio - Simulador</title>
     <style>
@@ -18,11 +19,11 @@
     <h1>📚 Material de Estudio ({{ nivel }})</h1>
     <p style="text-align: center; color: #555;">Selecciona un tema del temario oficial para estudiar la teoría y ver ejemplos resueltos.</p>
 
-    {% for materia, temas in temario.items() %}
+    {% for item in temario %}
     <div class="materia-seccion">
-        <h2 class="materia-titulo">{{ materia }}</h2>
-        {% for tema in temas %}
-            <a href="{{ url_for('detalle_estudio', nivel=nivel, materia=materia, tema_id=tema.id) }}" class="tema-link">
+        <h2 class="materia-titulo">{{ item.limpia }}</h2>
+        {% for tema in item.temas %}
+            <a href="{{ url_for('detalle_estudio', nivel=nivel, materia=item.original, tema_id=tema.id) }}" class="tema-link">
                 📖 {{ tema.titulo }}
             </a>
         {% endfor %}

@@ -2,6 +2,7 @@
 <html lang="es">
 
 <head>
+    <link rel="icon" href="{{ url_for("static", filename="img/LIA_Mini.png") }}" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Examen de Ingreso</title>
@@ -135,7 +136,7 @@
         </div>
 
     </header>
-
+    <br>
     <div style="background-color: var(--primary-color); padding: 10px 20px; text-align: right; color: white;">
         {% if current_user.is_authenticated %}
         <span>Bienvenido, <strong>{{ current_user.username }}</strong>!</span>
@@ -149,37 +150,7 @@
             style="color: #ff9800; font-weight: bold; margin-left: 15px; text-decoration: none;">Regístrate</a>
         {% endif %}
     </div>
-
-    <div id="modalTerminos"
-        style="display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
-        <div
-            style="background-color: white; padding: 30px; border-radius: 10px; max-width: 500px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-            <h2>Términos y Condiciones</h2>
-            <p>Este simulador ha sido creado exclusivamente con fines de <strong>práctica y estudio</strong>.</p>
-            <p>Es un proyecto <strong>sin fines de lucro</strong>. Está estrictamente prohibida su venta o
-                comercialización.</p>
-            <button onclick="aceptarTerminos()"
-                style="background-color: #6c1d45; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Aceptar
-                y Continuar</button>
-        </div>
-    </div>
-
-    <script>
-        // Mostrar modal solo si no ha aceptado antes en esta sesión
-        window.onload = function () {
-            if (!sessionStorage.getItem('terminosAceptados')) {
-                document.getElementById('modalTerminos').style.display = 'flex';
-            } else {
-                document.getElementById('modalTerminos').style.display = 'none';
-            }
-        }
-
-        function aceptarTerminos() {
-            sessionStorage.setItem('terminosAceptados', 'true');
-            document.getElementById('modalTerminos').style.display = 'none';
-        }
-    </script>
-    <br><br>
+    <br> <br>
     <div class="dashboard">
         <div class="card">
             <h2>Simulacro General</h2>
@@ -226,6 +197,18 @@
 
                 <input type="hidden" name="nivel" value="{{ nivel }}">
 
+                {% if nivel == 'Superior' %}
+                <div class="form-group">
+                    <label for="area_materia">Área de Conocimiento:</label>
+                    <select name="area" id="area_materia" required>
+                        <option value="Ingeniería y Ciencias Físico Matemáticas">Ingeniería y Ciencias Físico
+                            Matemáticas</option>
+                        <option value="Ciencias Médico Biológicas">Ciencias Médico Biológicas</option>
+                        <option value="Ciencias Sociales y Administrativas">Ciencias Sociales y Administrativas</option>
+                    </select>
+                </div>
+                {% endif %}
+
                 <div class="form-group">
                     <label for="materia">Selecciona la materia:</label>
                     <select name="materia" id="materia" required>
@@ -251,10 +234,29 @@
         <div class="card">
             <h2>Modo Flashcards</h2>
             <p>Estudia de forma rápida con tarjetas de memoria interactivas. Ideal para repasar conceptos clave.</p>
+            {% if nivel == 'Superior' %}
+            <form action="/flashcards/{{ nivel }}" method="GET" style="margin-top: 15px;">
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label for="area_flashcards" style="font-size: 0.9em; font-weight: bold;">Elige tu área:</label>
+                    <select name="area" id="area_flashcards" required
+                        style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.9em;">
+                        <option value="Ingeniería y Ciencias Físico Matemáticas">Ingeniería y Ciencias Físico
+                            Matemáticas</option>
+                        <option value="Ciencias Médico Biológicas">Ciencias Médico Biológicas</option>
+                        <option value="Ciencias Sociales y Administrativas">Ciencias Sociales y Administrativas</option>
+                    </select>
+                </div>
+                <button type="submit"
+                    style="background-color: #28a745; color: white; padding: 12px; width: 100%; text-decoration: none; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s;"
+                    onmouseover="this.style.backgroundColor='#218838'"
+                    onmouseout="this.style.backgroundColor='#28a745'">Iniciar Repaso Rápido ⚡</button>
+            </form>
+            {% else %}
             <a href="/flashcards/{{ nivel }}"
                 style="display: block; text-align: center; background-color: #28a745; color: white; padding: 14px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 15px; transition: 0.3s;"
                 onmouseover="this.style.backgroundColor='#218838'"
                 onmouseout="this.style.backgroundColor='#28a745'">Iniciar Repaso Rápido ⚡</a>
+            {% endif %}
         </div>
     </div>
 
@@ -272,11 +274,33 @@
     </div>
 
     <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
+        {% if nivel == 'Superior' %}
+        <form action="/estudio/{{ nivel }}" method="GET"
+            style="display: inline-block; text-align: left; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid var(--primary-color);">
+            <p
+                style="margin-top: 0; font-weight: bold; color: var(--primary-color); font-size: 1.2em; text-align: center;">
+                📚 Material de Estudio</p>
+            <div class="form-group">
+                <label for="area_estudio" style="font-weight: 600;">Selecciona tu área para ver el temario:</label>
+                <select name="area" id="area_estudio" required
+                    style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ccc; margin-top: 10px; font-size: 1em; box-sizing: border-box;">
+                    <option value="Ingeniería y Ciencias Físico Matemáticas">Ingeniería y Ciencias Físico Matemáticas
+                    </option>
+                    <option value="Ciencias Médico Biológicas">Ciencias Médico Biológicas</option>
+                    <option value="Ciencias Sociales y Administrativas">Ciencias Sociales y Administrativas</option>
+                </select>
+            </div>
+            <button type="submit"
+                style="background-color: var(--primary-color); color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; transition: 0.3s; width: 100%; font-weight: bold; font-size: 1.1em; margin-top: 10px;">Ir
+                a Estudiar Temas</button>
+        </form>
+        {% else %}
         <a href="/estudio/{{ nivel }}"
             style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
             onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             ¿Quieres estudiar los temas principales del examen desde aquí?
         </a>
+        {% endif %}
     </div>
 
     <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">

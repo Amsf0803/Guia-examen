@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{{ url_for("static", filename="img/LIA_Mini.png") }}" type="image/png">
+    <meta charset="UTF-8">
+    <title>Términos y Condiciones</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
+    <div style="background-color: white; padding: 40px; border-radius: 12px; max-width: 500px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.2); border-top: 6px solid #6c1d45;">
+        <img src="{{ url_for('static', filename='img/logo-ipn-color.png') }}" style="height: 60px; margin-bottom: 20px;">
+        <h2 style="color: #6c1d45; margin-top: 0;">Términos y Condiciones</h2>
+        
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-weight: bold;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+        {% endwith %}
+        
+        <p>Este simulador ha sido creado exclusivamente con fines de <strong>práctica y estudio</strong>.</p>
+        <p>Es un proyecto <strong>sin fines de lucro</strong>. Está estrictamente prohibida su venta o comercialización.</p>
+        <br>
+        <form action="/terminos" method="POST">
+            <button type="submit" style="background-color: #6c1d45; color: white; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1em; transition: 0.3s;" onmouseover="this.style.backgroundColor='#8e2a5e'" onmouseout="this.style.backgroundColor='#6c1d45'">Aceptar y Continuar</button>
+        </form>
+    </div>
+</body>
+</html>

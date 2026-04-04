@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="icon" href="{{ url_for("static", filename="img/LIA_Mini.png") }}" type="image/png">
     <meta charset="UTF-8">
     <title>Resolviendo Simulacro</title>
     <script>
@@ -227,7 +228,9 @@
         if (tiempoRestante <= 0) {
             clearInterval(intervalo);
             relojDiv.innerText = "¡TIEMPO AGOTADO!";
-            // Autoenviar el formulario
+            // Autoenviar el formulario saltándose la protección
+            examenTerminado = true;
+            sessionStorage.setItem('estado_examen', 'entregado');
             formulario.submit(); 
         } else {
             tiempoRestante--;
