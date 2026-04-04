@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú de Dudas y Auditoría</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/LIA_Mini.png') }}" type="image/png">
+    <style>
+        :root { --primary-color: #003366; --bg-color: #f4f7f6; --card-bg: #ffffff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); padding: 40px 20px; text-align: center; color: #333;}
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; max-width: 900px; margin: 0 auto; }
+        .card { background-color: var(--card-bg); border-radius: 12px; padding: 30px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex: 1; min-width: 300px; border-top: 5px solid #ff9800; text-align: left;}
+        .dev-card { border-top: 5px solid #dc3545; } /* Rojo para admin */
+        h2 { color: var(--primary-color); margin-top: 0; }
+        input[type="number"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; margin-bottom: 15px; font-size: 1em; }
+        .btn { display: block; text-align: center; width: 100%; padding: 14px; border: none; border-radius: 6px; font-size: 1.1em; font-weight: bold; cursor: pointer; text-decoration: none; box-sizing: border-box; }
+        .btn-orange { background-color: #ff9800; color: white; }
+        .btn-orange:hover { background-color: #e68a00; }
+        .btn-red { background-color: #dc3545; color: white; }
+        .btn-red:hover { background-color: #c82333; }
+        .alert { background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .btn-back { display: inline-block; background-color: var(--primary-color); color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+    <a href="{{ url_retorno }}" class="btn-back">← Volver al Menú Principal</a>
+    
+    <h1 style="color: var(--primary-color);">Gestión de Dudas y Auditoría</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <div class="card">
+            <h2>Mis preguntas dudosas</h2>
+            <p>Revisa la lista de preguntas que marcaste durante tus simulacros para repasarlas o consultar su procedimiento.</p>
+            <br>
+            <a href="/mis_dudas" class="btn btn-orange">Ver mi lista de dudas</a>
+        </div>
+
+        <div class="card dev-card">
+            <h2 style="color: #dc3545;">Buscador de Preguntas</h2>
+            <p>Herramienta de desarrollo: Ingresa el ID exacto de una pregunta para auditar sus opciones y justificación.</p>
+            <form action="/buscar_pregunta" method="POST">
+                <label for="pregunta_id" style="font-weight: bold;">ID de la Pregunta:</label>
+                <input type="number" name="pregunta_id" id="pregunta_id" placeholder="Ej. 142" required>
+                <button type="submit" class="btn btn-red">Buscar Pregunta</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

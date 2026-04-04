@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Pregunta #{{ pregunta.id }}</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/LIA_Mini.png') }}" type="image/png">
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        :root { --primary-color: #003366; --bg-color: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { background-color: white; max-width: 800px; width: 100%; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 30px; border-top: 6px solid var(--primary-color); }
+        .header-info { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .header-info span { background-color: #e9ecef; padding: 5px 12px; border-radius: 15px; font-size: 0.9em; font-weight: bold; color: #555; }
+        .question-text { font-size: 1.25em; margin-bottom: 20px; color: #333; }
+        .options-grid { display: grid; gap: 15px; margin-bottom: 30px; }
+        .option-box { padding: 15px; border: 2px solid #ddd; border-radius: 8px; background-color: #fafafa; display: flex; align-items: center; }
+        .option-box.correct { border-color: #28a745; background-color: #d4edda; }
+        .option-letter { font-weight: bold; margin-right: 15px; font-size: 1.2em; color: #555; }
+        .correct .option-letter { color: #155724; }
+        .proc-box { background-color: #fff3e0; padding: 20px; border-left: 5px solid #ff9800; border-radius: 5px; margin-top: 20px; }
+        .btn-back { display: inline-block; background-color: var(--primary-color); color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="btn-back">← Volver al Inicio</a>
+
+    <div class="container">
+        <h2 style="color: var(--primary-color); margin-top: 0;">Vista Preliminar de Pregunta</h2>
+        
+        <div class="header-info">
+            <span>🔖 ID: {{ pregunta.id }}</span>
+            <span>📚 Nivel: {{ pregunta.nivel }}</span>
+            <span>📝 Materia: {{ pregunta.materia }}</span>
+        </div>
+
+        <div class="question-text">
+            <strong>Pregunta:</strong><br>
+            {{ pregunta.texto_pregunta | safe }}
+        </div>
+
+        {% if pregunta.imagen %}
+            <div style="text-align: center; margin-bottom: 20px; background-color: #f1f1f1; padding: 15px; border-radius: 8px;">
+                <strong>Recurso visual de la pregunta:</strong><br><br>
+                {% if pregunta.imagen.endswith('.png') or pregunta.imagen.endswith('.jpg') %}
+                    <img src="{{ url_for('static', filename='img/' + pregunta.imagen) }}" alt="Imagen de pregunta" style="max-height: 200px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                {% else %}
+                    <div style="font-size: 1.5em; font-weight: bold;">{{ pregunta.imagen | safe }}</div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <h3 style="color: #444; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Opciones de Respuesta</h3>
+        
+        <div class="options-grid">
+            <div class="option-box {% if pregunta.respuesta_correcta == 'A' %}correct{% endif %}">
+                <span class="option-letter">A)</span> 
+                <div>
+                    {% if pregunta.opcion_a.endswith('.png') or pregunta.opcion_a.endswith('.jpg') %}
+                        <img src="{{ url_for('static', filename='img/' + pregunta.opcion_a) }}" style="max-height: 80px;">
+                    {% else %}
+                        {{ pregunta.opcion_a | safe }}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="option-box {% if pregunta.respuesta_correcta == 'B' %}correct{% endif %}">
+                <span class="option-letter">B)</span> 
+                <div>
+                    {% if pregunta.opcion_b.endswith('.png') or pregunta.opcion_b.endswith('.jpg') %}
+                        <img src="{{ url_for('static', filename='img/' + pregunta.opcion_b) }}" style="max-height: 80px;">
+                    {% else %}
+                        {{ pregunta.opcion_b | safe }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="option-box {% if pregunta.respuesta_correcta == 'C' %}correct{% endif %}">
+                <span class="option-letter">C)</span> 
+                <div>
+                    {% if pregunta.opcion_c.endswith('.png') or pregunta.opcion_c.endswith('.jpg') %}
+                        <img src="{{ url_for('static', filename='img/' + pregunta.opcion_c) }}" style="max-height: 80px;">
+                    {% else %}
+                        {{ pregunta.opcion_c | safe }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="option-box {% if pregunta.respuesta_correcta == 'D' %}correct{% endif %}">
+                <span class="option-letter">D)</span> 
+                <div>
+                    {% if pregunta.opcion_d.endswith('.png') or pregunta.opcion_d.endswith('.jpg') %}
+                        <img src="{{ url_for('static', filename='img/' + pregunta.opcion_d) }}" style="max-height: 80px;">
+                    {% else %}
+                        {{ pregunta.opcion_d | safe }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <h3 style="color: #444; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Procedimiento / Explicación Registrada</h3>
+        {% if pregunta.procedimiento %}
+            <div class="proc-box">
+                {{ pregunta.procedimiento | safe }}
+            </div>
+        {% else %}
+            <p style="color: #777; font-style: italic;">No se ha guardado ningún procedimiento o justificación para esta pregunta en la base de datos.</p>
+        {% endif %}
+
+    </div>
+
+</body>
+</html>

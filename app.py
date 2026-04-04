@@ -50,6 +50,15 @@ class Pregunta(db.Model):
     respuesta_correcta = db.Column(db.String(1), nullable=False)
     procedimiento = db.Column(db.Text, nullable=True)
 
+class PreguntaDuda(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    pregunta_id = db.Column(db.Integer, db.ForeignKey('pregunta.id'), nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    usuario = db.relationship('Usuario', backref=db.backref('dudas', lazy=True))
+    pregunta = db.relationship('Pregunta', backref=db.backref('marcadas_duda', lazy=True))
+
 with app.app_context():
     db.create_all()
 
@@ -144,6 +153,56 @@ def flashcards(nivel="Superior"):
     materia_limpia = limpiar_materia(pregunta.materia) if pregunta else ""
         
     return render_template('flashcards.html', pregunta=pregunta, nivel=nivel, area=area, materia_limpia=materia_limpia)
+
+@app.route('/pregunta/<int:id>')
+def pregunta_individual(id):
+    pregunta = db.session.get(Pregunta, id)
+    if not pregunta:
+        flash(f"Error: La pregunta con ID {id} no existe en la base de datos.", "error")
+        return redirect(url_for('dudas_menu'))
+    return render_template('pregunta_detalle.html', pregunta=pregunta)
+
+@app.route('/dudas_menu')
+def dudas_menu():
+    nivel = request.args.get('nivel', 'Superior') # Por defecto Superior si no hay dato
+    url_retorno = "/menu_superior" if nivel == "Superior" else "/menu_medio_superior"
+    return render_template('dudas_menu.html', url_retorno=url_retorno)
+
+@app.route('/buscar_pregunta', methods=['POST'])
+def buscar_pregunta():
+    pregunta_id = request.form.get('pregunta_id')
+    if pregunta_id and pregunta_id.isdigit():
+        return redirect(url_for('pregunta_individual', id=int(pregunta_id)))
+    flash("ID inválido.", "error")
+    return redirect(url_for('dudas_menu'))
+
+@app.route('/marcar_duda', methods=['POST'])
+def marcar_duda():
+    if not current_user.is_authenticated:
+        return {"error": "Unauthorized"}, 401
+    
+    data = request.get_json()
+    pregunta_id = data.get('id')
+    
+    # Verificar si ya existe
+    duda_existente = PreguntaDuda.query.filter_by(usuario_id=current_user.id, pregunta_id=pregunta_id).first()
+    
+    if duda_existente:
+        db.session.delete(duda_existente)
+        db.session.commit()
+        return {"status": "removed"}
+    else:
+        nueva_duda = PreguntaDuda(usuario_id=current_user.id, pregunta_id=pregunta_id)
+        db.session.add(nueva_duda)
+        db.session.commit()
+        return {"status": "added"}
+
+@app.route('/mis_dudas')
+@login_required
+def mis_dudas():
+    dudas = PreguntaDuda.query.filter_by(usuario_id=current_user.id).order_by(PreguntaDuda.fecha.desc()).all()
+    # Optional: fetch related preguntas
+    return render_template('mis_dudas.html', dudas=dudas)
 
 def limpiar_materia(materia):
     if materia and (materia.endswith('_I') or materia.endswith('_M') or materia.endswith('_A')):

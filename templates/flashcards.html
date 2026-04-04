@@ -121,16 +121,40 @@
 
                 <div class="opciones">
                     <input type="radio" name="res" id="opt_A" value="A" class="opcion-radio">
-                    <label for="opt_A" class="opcion-label"><strong>A)</strong> {{ pregunta.opcion_a | safe }}</label>
+                    <label for="opt_A" class="opcion-label"><strong>A)</strong> 
+                        {% if pregunta.opcion_a.endswith('.png') or pregunta.opcion_a.endswith('.jpg') %}
+                            <img src="{{ url_for('static', filename='img/' + pregunta.opcion_a) }}" style="max-height: 80px; vertical-align: middle;">
+                        {% else %}
+                            {{ pregunta.opcion_a | safe }}
+                        {% endif %}
+                    </label>
                     
                     <input type="radio" name="res" id="opt_B" value="B" class="opcion-radio">
-                    <label for="opt_B" class="opcion-label"><strong>B)</strong> {{ pregunta.opcion_b | safe }}</label>
+                    <label for="opt_B" class="opcion-label"><strong>B)</strong> 
+                        {% if pregunta.opcion_b.endswith('.png') or pregunta.opcion_b.endswith('.jpg') %}
+                            <img src="{{ url_for('static', filename='img/' + pregunta.opcion_b) }}" style="max-height: 80px; vertical-align: middle;">
+                        {% else %}
+                            {{ pregunta.opcion_b | safe }}
+                        {% endif %}
+                    </label>
                     
                     <input type="radio" name="res" id="opt_C" value="C" class="opcion-radio">
-                    <label for="opt_C" class="opcion-label"><strong>C)</strong> {{ pregunta.opcion_c | safe }}</label>
+                    <label for="opt_C" class="opcion-label"><strong>C)</strong> 
+                        {% if pregunta.opcion_c.endswith('.png') or pregunta.opcion_c.endswith('.jpg') %}
+                            <img src="{{ url_for('static', filename='img/' + pregunta.opcion_c) }}" style="max-height: 80px; vertical-align: middle;">
+                        {% else %}
+                            {{ pregunta.opcion_c | safe }}
+                        {% endif %}
+                    </label>
                     
                     <input type="radio" name="res" id="opt_D" value="D" class="opcion-radio">
-                    <label for="opt_D" class="opcion-label"><strong>D)</strong> {{ pregunta.opcion_d | safe }}</label>
+                    <label for="opt_D" class="opcion-label"><strong>D)</strong> 
+                        {% if pregunta.opcion_d.endswith('.png') or pregunta.opcion_d.endswith('.jpg') %}
+                            <img src="{{ url_for('static', filename='img/' + pregunta.opcion_d) }}" style="max-height: 80px; vertical-align: middle;">
+                        {% else %}
+                            {{ pregunta.opcion_d | safe }}
+                        {% endif %}
+                    </label>
                 </div>
 
                 <button class="btn-flip" onclick="verificarYVoltear()">Girar para ver Respuesta ➔</button>

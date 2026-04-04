@@ -270,14 +270,43 @@
     }
 
     // --- LÓGICA DE MARCAR DUDAS ---
-    function toggleRevision(id) {
-        let card = document.getElementById('card-' + id);
-        let btn = document.getElementById('btn-rev-' + id);
-        card.classList.toggle('marcado-revision');
-        if (card.classList.contains('marcado-revision')) {
-            btn.innerText = "Duda marcada (desmarcar)";
-        } else {
-            btn.innerText = "Marcar dudas";
+    async function toggleRevision(id) {
+        const card = document.getElementById('pregunta-card-' + id);
+        const btn = document.getElementById('btn-duda-' + id); // Asumiendo que tu botón tiene este ID
+
+        try {
+            const response = await fetch('/marcar_duda', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: id })
+            });
+
+            if (response.status === 401) {
+                // Alerta visual sin interrumpir el examen
+                alert("⚠️ Necesitas iniciar sesión para que el servidor guarde esta pregunta en tu lista definitiva de dudas. Tu progreso local no se enviará.");
+                // Opcional: Puedes pintarla temporalmente en naranja para esta sesión
+                card.classList.toggle('marcada-duda-temporal');
+                return;
+            }
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.status === "added") {
+                    card.style.borderTop = "5px solid #ff9800"; // Naranja
+                    card.style.backgroundColor = "#fff3e0";
+                    if(btn) btn.innerText = "🚩 Duda Guardada";
+                } else if (data.status === "removed") {
+                    card.style.borderTop = "5px solid var(--primary-color)"; // Regresa a la normalidad
+                    card.style.backgroundColor = "var(--card-bg)";
+                    if(btn) btn.innerText = "🚩 Marcar Duda";
+                }
+            } else {
+                console.error("Error al contactar con el servidor.");
+            }
+        } catch (error) {
+            console.error("Error de red:", error);
         }
     }
 

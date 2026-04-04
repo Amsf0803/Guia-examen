@@ -2,7 +2,7 @@
 <html lang="es">
 
 <head>
-    <link rel="icon" href="{{ url_for("static", filename="img/LIA_Mini.png") }}" type="image/png">
+    <link rel="icon" href="{{ url_for('static', filename='img/LIA_Mini.png') }}" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Examen de Ingreso</title>
@@ -267,7 +267,7 @@
 
     <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
         <a href="{{ link_material }}" target="_blank"
-            style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
+            style="display: inline-block; background-color: #dc3545; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
             onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             ¿Quieres acceder al Material de apoyo 2026?
         </a>
@@ -276,9 +276,8 @@
     <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
         {% if nivel == 'Superior' %}
         <form action="/estudio/{{ nivel }}" method="GET"
-            style="display: inline-block; text-align: left; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid var(--primary-color);">
-            <p
-                style="margin-top: 0; font-weight: bold; color: var(--primary-color); font-size: 1.2em; text-align: center;">
+            style="display: inline-block; text-align: left; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid #28a745;">
+            <p style="margin-top: 0; font-weight: bold; color: #28a745; font-size: 1.2em; text-align: center;">
                 📚 Material de Estudio</p>
             <div class="form-group">
                 <label for="area_estudio" style="font-weight: 600;">Selecciona tu área para ver el temario:</label>
@@ -291,12 +290,12 @@
                 </select>
             </div>
             <button type="submit"
-                style="background-color: var(--primary-color); color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; transition: 0.3s; width: 100%; font-weight: bold; font-size: 1.1em; margin-top: 10px;">Ir
+                style="background-color: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; transition: 0.3s; width: 100%; font-weight: bold; font-size: 1.1em; margin-top: 10px;">Ir
                 a Estudiar Temas</button>
         </form>
         {% else %}
         <a href="/estudio/{{ nivel }}"
-            style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
+            style="display: inline-block; background-color: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
             onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             ¿Quieres estudiar los temas principales del examen desde aquí?
         </a>
@@ -304,8 +303,16 @@
     </div>
 
     <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
+        <a href="/dudas_menu?nivel={{ nivel }}"
+            style="display: inline-block; background-color: #ffc107; color: #333; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
+            onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            🔍 Menú de Dudas y Auditoría
+        </a>
+    </div>
+
+    <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
         <a href="/"
-            style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
+            style="display: inline-block; background-color: #003366; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
             onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             Cambiar de Nivel Académico
         </a>
