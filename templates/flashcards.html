@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repaso Rápido Flashcards - IPN</title>
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        :root { --primary-color: #003366; --hover-color: #00509e; --bg-color: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        /* Contenedor central */
+        .flashcard-container {
+            width: 100%;
+            max-width: 600px;
+            perspective: 1000px;
+            margin-top: 50px;
+        }
+
+        /* La carta en sí, que girará usando Grid para ajustar el alto del más alto */
+        .flashcard {
+            width: 100%;
+            display: grid;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Frente y dorso comunes */
+        .flashcard-face {
+            grid-area: 1 / 1;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            padding: 30px;
+            box-sizing: border-box;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Frente de la carta */
+        .flashcard-front {
+            border-top: 6px solid var(--primary-color);
+            transform: rotateY(0deg);
+            z-index: 2; /* Corrección para Safari */
+        }
+
+        /* Dorso de la carta */
+        .flashcard-back {
+            transform: rotateY(180deg);
+            border-top: 6px solid #28a745;
+        }
+
+        .materia-badge { display: inline-block; background-color: var(--primary-color); color: white; padding: 5px 12px; border-radius: 15px; font-size: 0.9em; font-weight: bold; margin-bottom: 20px; text-align: center; align-self: flex-start; }
+        
+        .question-text { font-size: 1.3em; margin-bottom: 20px; }
+        .answer-text { font-size: 1.5em; color: #28a745; font-weight: bold; text-align: center; margin-bottom: 10px;}
+        .proc-box { background: #f8f9fa; padding: 15px; border-left: 4px solid #ff9800; border-radius: 4px; font-size: 0.95em; }
+
+        .btn-action { margin-top: 30px; margin-bottom: 30px; background-color: var(--primary-color); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; transition: 0.3s; border: none; cursor: pointer;}
+        .btn-action:hover { background-color: var(--hover-color); }
+
+        .btn-flip { margin-top: 20px; background-color: #ff9800; color: white; padding: 12px 20px; font-size: 1.1em; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; transition: 0.2s; width: 100%;}
+        .btn-flip:hover { background-color: #e68a00; }
+
+        /* Estilos de las opciones seleccionables */
+        .opciones { margin-top: 15px; }
+        .opcion-label {
+            display: block;
+            margin: 10px 0;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            background-color: #fafafa;
+        }
+        .opcion-label:hover { background-color: #f1f1f1; }
+        .opcion-radio:checked + .opcion-label {
+            border-color: var(--primary-color);
+            background-color: #e6f0fa;
+        }
+        .opcion-radio { display: none; }
+
+    </style>
+</head>
+<body>
+
+    <a href="/{{ 'menu_superior' if nivel == 'Superior' else 'menu_medio_superior' }}" style="align-self: flex-start; margin-bottom: 20px; color: var(--primary-color); text-decoration: none; font-weight: bold;">← Volver al Menú Principal</a>
+
+    <h1 style="color: var(--primary-color); margin-top: 0;">Modo Flashcard</h1>
+    <p style="margin-top:0;">Estudia rápido: Selecciona una opción y voltea la tarjeta.</p>
+
+    {% if pregunta %}
+    <div class="flashcard-container">
+        <div class="flashcard" id="flashcard">
+            
+            <!-- FRENTE: PREGUNTA -->
+            <div class="flashcard-face flashcard-front">
+                <span class="materia-badge">{{ pregunta.materia }}</span>
+                <div class="question-text">{{ pregunta.texto_pregunta | safe }}</div>
+                
+                {% if pregunta.imagen %}
+                    <div style="text-align: center; margin-bottom: 15px;">
+                    {% if pregunta.imagen.endswith('.png') or pregunta.imagen.endswith('.jpg') %}
+                        <img src="{{ url_for('static', filename='img/' + pregunta.imagen) }}" alt="Imagen" style="max-height: 150px; border-radius: 5px;">
+                    {% else %}
+                        <div style="background: #e9ecef; padding: 10px; display: inline-block;">{{ pregunta.imagen | safe }}</div>
+                    {% endif %}
+                    </div>
+                {% endif %}
+
+                <div class="opciones">
+                    <input type="radio" name="res" id="opt_A" value="A" class="opcion-radio">
+                    <label for="opt_A" class="opcion-label"><strong>A)</strong> {{ pregunta.opcion_a | safe }}</label>
+                    
+                    <input type="radio" name="res" id="opt_B" value="B" class="opcion-radio">
+                    <label for="opt_B" class="opcion-label"><strong>B)</strong> {{ pregunta.opcion_b | safe }}</label>
+                    
+                    <input type="radio" name="res" id="opt_C" value="C" class="opcion-radio">
+                    <label for="opt_C" class="opcion-label"><strong>C)</strong> {{ pregunta.opcion_c | safe }}</label>
+                    
+                    <input type="radio" name="res" id="opt_D" value="D" class="opcion-radio">
+                    <label for="opt_D" class="opcion-label"><strong>D)</strong> {{ pregunta.opcion_d | safe }}</label>
+                </div>
+
+                <button class="btn-flip" onclick="verificarYVoltear()">Confirmar y Voltear Tarjeta ➔</button>
+            </div>
+
+            <!-- DORSO: RESPUESTA -->
+            <div class="flashcard-face flashcard-back">
+                <div id="texto-resultado-usuario" style="text-align: center; font-size: 1.2em; font-weight: bold; margin-bottom: 20px;"></div>
+                
+                <h3 style="text-align: center; color: #555; margin-top: 0; margin-bottom: 5px;">Respuesta Correcta</h3>
+                <div class="answer-text">Opción: {{ pregunta.respuesta_correcta }}</div>
+                
+                {% if pregunta.procedimiento %}
+                    <h4 style="margin-bottom: 8px;">Procedimiento / Explicación:</h4>
+                    <div class="proc-box">{{ pregunta.procedimiento | safe }}</div>
+                {% else %}
+                    <div style="text-align: center; color: #888; font-style: italic; margin-top: 20px;">No hay explicación detallada para esta pregunta.</div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+    
+    <button class="btn-action" onclick="window.location.reload();">Siguiente Tarjeta ➔</button>
+
+    <script>
+        const respuestaCorrecta = "{{ pregunta.respuesta_correcta }}";
+
+        function verificarYVoltear() {
+            let seleccionada = document.querySelector('input[name="res"]:checked');
+            let textoUsuario = document.getElementById('texto-resultado-usuario');
+            
+            if (seleccionada) {
+                let val = seleccionada.value;
+                if (val === respuestaCorrecta) {
+                    textoUsuario.innerHTML = `<span style="color: #28a745;">🎉 ¡Correcto! Elegiste la opción ${val}</span>`;
+                } else {
+                    textoUsuario.innerHTML = `<span style="color: #dc3545;">❌ Incorrecto. Elegiste la opción ${val}</span>`;
+                }
+            } else {
+                textoUsuario.innerHTML = `<span style="color: #ff9800;">⚠️ No seleccionaste ninguna opción</span>`;
+            }
+            
+            document.getElementById('flashcard').classList.add('is-flipped');
+        }
+    </script>
+    {% else %}
+        <h2>No hay preguntas disponibles en la base de datos para el nivel {{ nivel }}.</h2>
+    {% endif %}
+
+</body>
+</html>

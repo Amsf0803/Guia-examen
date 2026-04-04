@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Progreso - Simulador IPN</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #003366;
+            --hover-color: #00509e;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 40px 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+            margin-bottom: 40px;
+            width: 100%;
+            height: 350px;
+        }
+
+        .history-list {
+            margin-top: 30px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .history-date {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .history-score {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .score-good {
+            color: #28a745;
+        }
+
+        .score-avg {
+            color: #ffc107;
+        }
+
+        .score-bad {
+            color: #dc3545;
+        }
+
+        .btn-volver {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .btn-volver:hover {
+            background-color: var(--hover-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="/" class="btn-volver">← Volver al Inicio</a>
+        <h1>Progreso de {{ current_user.username }}</h1>
+
+        {% if historial %}
+        <div class="chart-container">
+            <canvas id="progresoChart"></canvas>
+        </div>
+
+        <div class="history-list">
+            <h3>Historial de Exámenes</h3>
+            {% for item in historial %}
+            <div class="history-item">
+                <div>
+                    <div class="history-date">{{ item.fecha.strftime('%d de %b, %Y %H:%M') }}</div>
+                    <div style="font-size: 0.9em; color: #666;">Nivel: {{ item.nivel }}</div>
+                </div>
+                <div
+                    class="history-score {% if item.porcentaje >= 80 %}score-good{% elif item.porcentaje >= 60 %}score-avg{% else %}score-bad{% endif %}">
+                    {{ item.aciertos }} / {{ item.total }} ({{ item.porcentaje|round(1) }}%)
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <script>
+            const ctx = document.getElementById('progresoChart').getContext('2d');
+            const fechas = {{ fechas | safe }};
+            const porcentajes = {{ porcentajes | safe }};
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: fechas,
+                    datasets: [{
+                        label: 'Porcentaje de Aciertos (%)',
+                        data: porcentajes,
+                        borderColor: '#003366',
+                        backgroundColor: 'rgba(0, 51, 102, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#00509e',
+                        pointRadius: 5,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 100 }
+                    }
+                }
+            });
+        </script>
+        {% else %}
+        <div style="text-align: center; margin-top: 50px; color: #666;">
+            <h3>Aún no has completado ningún simulacro.</h3>
+            <p>Tus resultados aparecerán aquí y formarán una gráfica cuando termines uno.</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

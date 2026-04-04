@@ -48,6 +48,28 @@
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
+        
+        /* ESTILOS PARA MARCAR DUDAS */
+        .marcado-revision {
+            border: 2px solid #ff9800 !important;
+            background-color: #fff8e1 !important;
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.4);
+        }
+        .btn-marcar {
+            background-color: #ffc107;
+            color: #333;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: bold;
+            float: right;
+            transition: 0.3s;
+        }
+        .btn-marcar:hover {
+            background-color: #e0a800;
+        }
     </style>
 </head>
 <body>
@@ -65,7 +87,8 @@
         {% for p in preguntas %}
         <input type="hidden" name="preguntas_ids" value="{{ p.id }}">
         
-        <div class="pregunta-card">
+        <div class="pregunta-card" id="card-{{ p.id }}">
+            <button type="button" class="btn-marcar" onclick="toggleRevision({{ p.id }})" id="btn-rev-{{ p.id }}">Marcar dudas</button>
             <span class="materia-badge">{{ p.materia }}</span>
             <p><strong>{{ loop.index }}. {{ p.texto_pregunta | safe }}</strong></p>            
             
@@ -241,6 +264,18 @@
         }).catch(error => {
             console.error("Error de conexión:", error);
         });
+    }
+
+    // --- LÓGICA DE MARCAR DUDAS ---
+    function toggleRevision(id) {
+        let card = document.getElementById('card-' + id);
+        let btn = document.getElementById('btn-rev-' + id);
+        card.classList.toggle('marcado-revision');
+        if (card.classList.contains('marcado-revision')) {
+            btn.innerText = "Duda marcada (desmarcar)";
+        } else {
+            btn.innerText = "Marcar dudas";
+        }
     }
 
 </script>

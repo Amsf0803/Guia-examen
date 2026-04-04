@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Examen de Ingreso</title>
     <style>
         :root {
-            --primary-color: #003366; /* Azul tipo IPN */
+            --primary-color: #003366;
+            /* Azul tipo IPN */
             --hover-color: #00509e;
             --bg-color: #f4f7f6;
             --card-bg: #ffffff;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
@@ -18,11 +21,13 @@
             padding: 40px 20px;
             color: #333;
         }
+
         h1 {
             text-align: center;
             color: var(--primary-color);
             margin-bottom: 40px;
         }
+
         .dashboard {
             display: flex;
             flex-wrap: wrap;
@@ -31,35 +36,42 @@
             max-width: 1000px;
             margin: 0 auto;
         }
+
         .card {
             background-color: var(--card-bg);
             border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             padding: 30px;
             flex: 1;
             min-width: 300px;
             border-top: 5px solid var(--primary-color);
         }
+
         .card h2 {
             margin-top: 0;
             color: var(--primary-color);
             border-bottom: 2px solid var(--bg-color);
             padding-bottom: 10px;
         }
+
         .card p {
             font-size: 0.95em;
             color: #666;
             margin-bottom: 20px;
         }
+
         .form-group {
             margin-bottom: 20px;
         }
+
         label {
             display: block;
             font-weight: 600;
             margin-bottom: 8px;
         }
-        select, input[type="number"] {
+
+        select,
+        input[type="number"] {
             width: 100%;
             padding: 12px;
             border: 1px solid #ccc;
@@ -67,6 +79,7 @@
             font-size: 1em;
             box-sizing: border-box;
         }
+
         button {
             width: 100%;
             background-color: var(--primary-color);
@@ -79,29 +92,36 @@
             transition: background-color 0.3s ease;
             font-weight: bold;
         }
+
         button:hover {
             background-color: var(--hover-color);
         }
+
         .menu-flotante {
             text-align: center;
             margin-top: 40px;
         }
+
         .menu-flotante a {
             color: var(--primary-color);
             text-decoration: none;
             font-weight: bold;
         }
+
         .menu-flotante a:hover {
             text-decoration: underline;
         }
     </style>
 </head>
+
 <body>
 
-    <header style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: #f8f9fa;">
-        
+    <header
+        style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: #f8f9fa;">
+
         <div class="logo-izq">
-            <img src="{{ url_for('static', filename='img/logo-ipn-color.png') }}" alt="Logo 1" style="height: 70px; width: auto;">
+            <img src="{{ url_for('static', filename='img/logo-ipn-color.png') }}" alt="Logo 1"
+                style="height: 70px; width: auto;">
         </div>
 
         <div class="titulo-central" style="text-align: center;">
@@ -116,18 +136,37 @@
 
     </header>
 
-    <div id="modalTerminos" style="display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
-        <div style="background-color: white; padding: 30px; border-radius: 10px; max-width: 500px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+    <div style="background-color: var(--primary-color); padding: 10px 20px; text-align: right; color: white;">
+        {% if current_user.is_authenticated %}
+        <span>Bienvenido, <strong>{{ current_user.username }}</strong>!</span>
+        <a href="/dashboard" style="color: white; margin-left: 15px; font-weight: bold; text-decoration: none;">📊 Mi
+            Progreso</a>
+        <a href="/logout" style="color: #ff9800; margin-left: 15px; font-weight: bold; text-decoration: none;">Salir</a>
+        {% else %}
+        <a href="/login" style="color: white; font-weight: bold; margin-left: 15px; text-decoration: none;">Iniciar
+            Sesión</a>
+        <a href="/register"
+            style="color: #ff9800; font-weight: bold; margin-left: 15px; text-decoration: none;">Regístrate</a>
+        {% endif %}
+    </div>
+
+    <div id="modalTerminos"
+        style="display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
+        <div
+            style="background-color: white; padding: 30px; border-radius: 10px; max-width: 500px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
             <h2>Términos y Condiciones</h2>
             <p>Este simulador ha sido creado exclusivamente con fines de <strong>práctica y estudio</strong>.</p>
-            <p>Es un proyecto <strong>sin fines de lucro</strong>. Está estrictamente prohibida su venta o comercialización.</p>
-            <button onclick="aceptarTerminos()" style="background-color: #6c1d45; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Aceptar y Continuar</button>
+            <p>Es un proyecto <strong>sin fines de lucro</strong>. Está estrictamente prohibida su venta o
+                comercialización.</p>
+            <button onclick="aceptarTerminos()"
+                style="background-color: #6c1d45; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Aceptar
+                y Continuar</button>
         </div>
     </div>
 
     <script>
         // Mostrar modal solo si no ha aceptado antes en esta sesión
-        window.onload = function() {
+        window.onload = function () {
             if (!sessionStorage.getItem('terminosAceptados')) {
                 document.getElementById('modalTerminos').style.display = 'flex';
             } else {
@@ -140,27 +179,30 @@
             document.getElementById('modalTerminos').style.display = 'none';
         }
     </script>
+    <br><br>
     <div class="dashboard">
         <div class="card">
             <h2>Simulacro General</h2>
-            <p>Elige el tiempo disponible. La app calculará la cantidad de preguntas y mantendrá la proporción exacta del examen real.</p>
-            
+            <p>Elige el tiempo disponible. La app calculará la cantidad de preguntas y mantendrá la proporción exacta
+                del examen real.</p>
+
             <form action="/iniciar_examen" method="POST">
                 <input type="hidden" name="modalidad" value="general">
-                
+
                 <input type="hidden" name="nivel" value="{{ nivel }}">
 
                 {% if nivel == 'Superior' %}
                 <div class="form-group">
                     <label for="area">Área de Conocimiento:</label>
                     <select name="area" id="area" required>
-                        <option value="Ingeniería y Ciencias Físico Matemáticas">Ingeniería y Ciencias Físico Matemáticas</option>
+                        <option value="Ingeniería y Ciencias Físico Matemáticas">Ingeniería y Ciencias Físico
+                            Matemáticas</option>
                         <option value="Ciencias Médico Biológicas">Ciencias Médico Biológicas</option>
                         <option value="Ciencias Sociales y Administrativas">Ciencias Sociales y Administrativas</option>
                     </select>
                 </div>
                 {% endif %}
-                
+
                 <div class="form-group">
                     <label for="tiempo">Duración del examen:</label>
                     <select name="tiempo" id="tiempo" required>
@@ -170,7 +212,7 @@
                         <option value="180">3 Horas (Simulación Real)</option>
                     </select>
                 </div>
-                
+
                 <button type="submit">Iniciar Simulacro General</button>
             </form>
         </div>
@@ -178,17 +220,17 @@
         <div class="card">
             <h2>Práctica por Materia</h2>
             <p>Enfócate en tus áreas débiles resolviendo preguntas de una sola disciplina.</p>
-            
+
             <form action="/iniciar_examen" method="POST">
                 <input type="hidden" name="modalidad" value="materia">
-                
+
                 <input type="hidden" name="nivel" value="{{ nivel }}">
-                
+
                 <div class="form-group">
                     <label for="materia">Selecciona la materia:</label>
                     <select name="materia" id="materia" required>
                         {% for materia in materias %}
-                            <option value="{{ materia }}">{{ materia }}</option>
+                        <option value="{{ materia }}">{{ materia }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -201,9 +243,18 @@
                         <option value="30">30 Preguntas</option>
                     </select>
                 </div>
-                
+
                 <button type="submit">Practicar Materia</button>
             </form>
+        </div>
+
+        <div class="card">
+            <h2>Modo Flashcards</h2>
+            <p>Estudia de forma rápida con tarjetas de memoria interactivas. Ideal para repasar conceptos clave.</p>
+            <a href="/flashcards/{{ nivel }}"
+                style="display: block; text-align: center; background-color: #28a745; color: white; padding: 14px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 15px; transition: 0.3s;"
+                onmouseover="this.style.backgroundColor='#218838'"
+                onmouseout="this.style.backgroundColor='#28a745'">Iniciar Repaso Rápido ⚡</a>
         </div>
     </div>
 
@@ -211,24 +262,31 @@
     <div class="menu-flotante">
         <p>¿Tienes nuevas guías? <a href="/agregar_pregunta/{{ nivel }}">+ Añadir preguntas al banco</a></p>
     </div>
-    
+
     <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
-        <a href="{{ link_material }}" target="_blank" style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <a href="{{ link_material }}" target="_blank"
+            style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
+            onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             ¿Quieres acceder al Material de apoyo 2026?
         </a>
     </div>
-    
+
     <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
-        <a href="/estudio/{{ nivel }}" style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <a href="/estudio/{{ nivel }}"
+            style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
+            onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             ¿Quieres estudiar los temas principales del examen desde aquí?
         </a>
     </div>
 
     <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
-        <a href="/" style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <a href="/"
+            style="display: inline-block; background-color: var(--primary-color, #003366); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
+            onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             Cambiar de Nivel Académico
         </a>
     </div>
 
 </body>
+
 </html>

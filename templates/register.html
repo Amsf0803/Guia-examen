@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Simulador IPN</title>
+    <style>
+        :root {
+            --primary-color: #003366; 
+            --hover-color: #00509e;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 40px 20px; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); padding: 40px; width: 100%; max-width: 400px; border-top: 5px solid var(--primary-color); }
+        h1 { color: var(--primary-color); text-align: center; margin-top: 0; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1em; }
+        button { width: 100%; background-color: var(--primary-color); color: white; padding: 14px; font-size: 1.1em; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-top: 10px; }
+        button:hover { background-color: var(--hover-color); }
+        .links { text-align: center; margin-top: 20px; }
+        .links a { color: var(--primary-color); text-decoration: none; font-weight: bold; }
+        .flash { color: #dc3545; text-align: center; margin-bottom: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Crear Cuenta</h1>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form action="/register" method="POST">
+            <div class="form-group">
+                <label for="username">Elige un Usuario:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Elige una Contraseña:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Registrarse</button>
+        </form>
+        <div class="links">
+            <p>¿Ya tienes cuenta? <a href="/login">Inicia Sesión aquí</a></p>
+            <p><a href="/">Volver al inicio</a></p>
+        </div>
+    </div>
+</body>
+</html>
