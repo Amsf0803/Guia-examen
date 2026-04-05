@@ -140,7 +140,7 @@
     <div style="background-color: var(--primary-color); padding: 10px 20px; text-align: right; color: white;">
         {% if current_user.is_authenticated %}
         <span>Bienvenido, <strong>{{ current_user.username }}</strong>!</span>
-        <a href="/dashboard" style="color: white; margin-left: 15px; font-weight: bold; text-decoration: none;">📊 Mi
+        <a href="/dashboard?retorno={{ url_retorno }}" style="color: white; margin-left: 15px; font-weight: bold; text-decoration: none;">📊 Mi
             Progreso</a>
         <a href="/logout" style="color: #ff9800; margin-left: 15px; font-weight: bold; text-decoration: none;">Salir</a>
         {% else %}
@@ -311,7 +311,7 @@
     </div>
 
     <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
-        <a href="/"
+        <a href="/seleccion_nivel"
             style="display: inline-block; background-color: #003366; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
             onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             Cambiar de Nivel Académico

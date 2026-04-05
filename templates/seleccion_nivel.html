@@ -166,6 +166,16 @@
         </div>
     </header>
 
+    <div style="background-color: #003366; padding: 10px 30px; text-align: right; color: white;">
+        {% if current_user.is_authenticated %}
+        <span>Bienvenido, <strong>{{ current_user.username }}</strong>!</span>
+        <a href="/logout" style="color: #ff9800; margin-left: 15px; font-weight: bold; text-decoration: none;">Salir</a>
+        {% else %}
+        <a href="/login" style="color: white; font-weight: bold; margin-left: 15px; text-decoration: none;">Iniciar Sesión</a>
+        <a href="/register" style="color: #ff9800; font-weight: bold; margin-left: 15px; text-decoration: none;">Regístrate</a>
+        {% endif %}
+    </div>
+
     <main class="contenido">
         <div class="bienvenida">
             <h2>¡Bienvenido al Simulador Oficial!</h2>

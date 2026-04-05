@@ -1,3 +1,5 @@
+import os
+import re
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -7,7 +9,7 @@ import random
 import json
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'clave_secreta_super_segura_123'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave_secreta_super_segura_123')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///simulador.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -74,7 +76,7 @@ def terminos():
 
 @app.before_request
 def requerir_terminos():
-    rutas_permitidas = ['/terminos', '/login', '/register', '/logout']
+    rutas_permitidas = ['/terminos', '/login', '/register', '/logout', '/']
     if request.path in rutas_permitidas or request.path.startswith('/static/'):
         return None
     if not session.get('terminos_aceptados'):
@@ -85,8 +87,16 @@ def requerir_terminos():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        
+        if len(username) < 3:
+            flash('El nombre de usuario debe tener al menos 3 caracteres.')
+            return redirect(url_for('register'))
+        
+        if len(password) < 6:
+            flash('La contraseña debe tener al menos 6 caracteres.')
+            return redirect(url_for('register'))
         
         user_exists = Usuario.query.filter_by(username=username).first()
         if user_exists:
@@ -127,7 +137,8 @@ def dashboard():
     historial = HistorialExamen.query.filter_by(usuario_id=current_user.id).order_by(HistorialExamen.fecha.asc()).all()
     fechas = [h.fecha.strftime("%Y-%m-%d %H:%M") for h in historial]
     porcentajes = [h.porcentaje for h in historial]
-    return render_template('dashboard.html', fechas=json.dumps(fechas), porcentajes=json.dumps(porcentajes), historial=historial[::-1])
+    url_retorno = request.args.get('retorno', '/')
+    return render_template('dashboard.html', fechas=json.dumps(fechas), porcentajes=json.dumps(porcentajes), historial=historial[::-1], url_retorno=url_retorno)
 
 @app.route('/flashcards')
 @app.route('/flashcards/<nivel>')
@@ -166,7 +177,7 @@ def pregunta_individual(id):
 def dudas_menu():
     nivel = request.args.get('nivel', 'Superior') # Por defecto Superior si no hay dato
     url_retorno = "/menu_superior" if nivel == "Superior" else "/menu_medio_superior"
-    return render_template('dudas_menu.html', url_retorno=url_retorno)
+    return render_template('dudas_menu.html', url_retorno=url_retorno, nivel=nivel)
 
 @app.route('/buscar_pregunta', methods=['POST'])
 def buscar_pregunta():
@@ -200,9 +211,9 @@ def marcar_duda():
 @app.route('/mis_dudas')
 @login_required
 def mis_dudas():
+    nivel = request.args.get('nivel', 'Superior')
     dudas = PreguntaDuda.query.filter_by(usuario_id=current_user.id).order_by(PreguntaDuda.fecha.desc()).all()
-    # Optional: fetch related preguntas
-    return render_template('mis_dudas.html', dudas=dudas)
+    return render_template('mis_dudas.html', dudas=dudas, nivel=nivel)
 
 def limpiar_materia(materia):
     if materia and (materia.endswith('_I') or materia.endswith('_M') or materia.endswith('_A')):
@@ -221,6 +232,12 @@ def obtener_materia_area(materia, area):
 
 # --- RUTAS DE LOS MENÚS PRINCIPALES ---
 @app.route('/')
+def inicio():
+    """Entrada principal: siempre muestra términos y condiciones al entrar al sitio."""
+    session.pop('terminos_aceptados', None)
+    return redirect(url_for('terminos'))
+
+@app.route('/seleccion_nivel')
 def seleccion_nivel():
     return render_template('seleccion_nivel.html')
 
@@ -276,27 +293,38 @@ def detalle_estudio(nivel, materia, tema_id):
     return "Tema no encontrado", 404
 
 
+def sanitizar_html(texto):
+    """Elimina etiquetas <script> y atributos on* peligrosos pero permite LaTeX y HTML seguro."""
+    if not texto:
+        return texto
+    # Eliminar etiquetas <script>...</script>
+    texto = re.sub(r'<script[^>]*>.*?</script>', '', texto, flags=re.IGNORECASE | re.DOTALL)
+    # Eliminar atributos de eventos (onclick, onerror, onload, etc.)
+    texto = re.sub(r'\s+on\w+\s*=\s*["\'][^"\']*["\']', '', texto, flags=re.IGNORECASE)
+    texto = re.sub(r'\s+on\w+\s*=\s*\S+', '', texto, flags=re.IGNORECASE)
+    return texto
+
 @app.route('/agregar_pregunta', methods=['GET', 'POST'])
 @app.route('/agregar_pregunta/<nivel>', methods=['GET', 'POST'])
+@login_required
 def agregar_pregunta(nivel="Superior"):
     if request.method == 'POST':
         nueva_pregunta = Pregunta(
             nivel=request.form.get('nivel'), 
             materia=request.form.get('materia'),
-            texto_pregunta=request.form.get('texto_pregunta'),
-            opcion_a=request.form.get('opcion_a'),
-            opcion_b=request.form.get('opcion_b'),
-            opcion_c=request.form.get('opcion_c'),
-            opcion_d=request.form.get('opcion_d'),
+            texto_pregunta=sanitizar_html(request.form.get('texto_pregunta')),
+            opcion_a=sanitizar_html(request.form.get('opcion_a')),
+            opcion_b=sanitizar_html(request.form.get('opcion_b')),
+            opcion_c=sanitizar_html(request.form.get('opcion_c')),
+            opcion_d=sanitizar_html(request.form.get('opcion_d')),
             respuesta_correcta=request.form.get('respuesta_correcta'),
-            procedimiento=request.form.get('procedimiento')
+            procedimiento=sanitizar_html(request.form.get('procedimiento'))
         )
         db.session.add(nueva_pregunta)
         db.session.commit()
-        # Al terminar, redirigimos manteniendo el nivel para seguir agregando del mismo tipo
+        flash('¡Pregunta guardada exitosamente!', 'success')
         return redirect(url_for('agregar_pregunta', nivel=request.form.get('nivel'))) 
     
-    # Determinamos a dónde regresar el botón
     url_retorno = url_for('menu_superior') if nivel == "Superior" else url_for('menu_medio_superior')
     
     return render_template('agregar.html', nivel_actual=nivel, url_retorno=url_retorno)

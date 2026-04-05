@@ -3,6 +3,7 @@
 <head>
     <link rel="icon" href="{{ url_for("static", filename="img/LIA_Mini.png") }}" type="image/png">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resolviendo Simulacro</title>
     <script>
         MathJax = {
@@ -143,14 +144,20 @@
                 </label>
             </div>
 
-            <div id="ayuda-{{ p.id }}">
-                {% if p.procedimiento %}
+        <input type="hidden" name="ayuda_vista_{{ p.id }}" id="ayuda-flag-{{ p.id }}" value="0">
+
+            {% if p.procedimiento %}
+                <button type="button" class="btn-ayuda" onclick="mostrarAyuda({{ p.id }}, this)">💡 Ver Procedimiento de Ayuda</button>
+                <div class="procedimiento" id="ayuda-{{ p.id }}">
                     <p>{{ p.procedimiento | safe }}</p>
-                {% else %}
+                </div>
+            {% else %}
+                <button type="button" class="btn-ayuda" onclick="mostrarAyuda({{ p.id }}, this)">📝 Agregar Procedimiento</button>
+                <div class="procedimiento" id="ayuda-{{ p.id }}">
                     <textarea id="input-proc-{{ p.id }}" style="width: 100%; height: 80px; margin-bottom: 10px;" placeholder="No hay procedimiento. Escríbelo aquí para guardarlo..."></textarea>
                     <button type="button" onclick="guardarProc({{ p.id }})" style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Guardar Procedimiento</button>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
 
         </div>
         {% endfor %}
@@ -244,23 +251,24 @@
 
     // --- LÓGICA PARA GUARDAR PROCEDIMIENTO ---
     function guardarProc(id) {
-        const proc = document.getElementById('input-proc-' + id).value;
+        const textarea = document.getElementById('input-proc-' + id);
+        const proc = textarea.value;
         
-        // Pequeña validación para que no guarden vacíos
         if (!proc.trim()) {
             alert("Por favor, escribe algo antes de guardar.");
             return;
         }
 
-        // Enviamos la señal a Python
         fetch('/guardar_procedimiento', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({id: id, procedimiento: proc})
         }).then(response => {
             if(response.ok) {
+                // Actualizar el DOM directamente sin recargar
+                const contenedor = document.getElementById('ayuda-' + id);
+                contenedor.innerHTML = '<p>' + proc + '</p>';
                 alert("¡Procedimiento guardado con éxito!");
-                location.reload(); // Recarga la página para mostrar el texto ya guardado
             } else {
                 alert("Error: No se pudo guardar en la base de datos.");
             }
@@ -269,10 +277,19 @@
         });
     }
 
+    // --- LÓGICA PARA MOSTRAR AYUDA ---
+    function mostrarAyuda(id, btn) {
+        var div = document.getElementById('ayuda-' + id);
+        div.style.display = 'block';
+        document.getElementById('ayuda-flag-' + id).value = '1';
+        btn.style.display = 'none';
+        if (window.MathJax) { MathJax.typesetPromise(); }
+    }
+
     // --- LÓGICA DE MARCAR DUDAS ---
     async function toggleRevision(id) {
-        const card = document.getElementById('pregunta-card-' + id);
-        const btn = document.getElementById('btn-duda-' + id); // Asumiendo que tu botón tiene este ID
+        const card = document.getElementById('card-' + id);
+        const btn = document.getElementById('btn-rev-' + id);
 
         try {
             const response = await fetch('/marcar_duda', {
@@ -284,23 +301,20 @@
             });
 
             if (response.status === 401) {
-                // Alerta visual sin interrumpir el examen
-                alert("⚠️ Necesitas iniciar sesión para que el servidor guarde esta pregunta en tu lista definitiva de dudas. Tu progreso local no se enviará.");
-                // Opcional: Puedes pintarla temporalmente en naranja para esta sesión
-                card.classList.toggle('marcada-duda-temporal');
+                alert("⚠️ Necesitas iniciar sesión para guardar esta pregunta en tu lista de dudas.");
+                // Marcar visualmente de forma temporal
+                card.classList.toggle('marcado-revision');
                 return;
             }
 
             if (response.ok) {
                 const data = await response.json();
                 if (data.status === "added") {
-                    card.style.borderTop = "5px solid #ff9800"; // Naranja
-                    card.style.backgroundColor = "#fff3e0";
-                    if(btn) btn.innerText = "🚩 Duda Guardada";
+                    card.classList.add('marcado-revision');
+                    btn.innerText = "🚩 Duda Guardada";
                 } else if (data.status === "removed") {
-                    card.style.borderTop = "5px solid var(--primary-color)"; // Regresa a la normalidad
-                    card.style.backgroundColor = "var(--card-bg)";
-                    if(btn) btn.innerText = "🚩 Marcar Duda";
+                    card.classList.remove('marcado-revision');
+                    btn.innerText = "Marcar dudas";
                 }
             } else {
                 console.error("Error al contactar con el servidor.");
