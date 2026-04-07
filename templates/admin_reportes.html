@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{{ url_for('static', filename='img/LIA_Mini.png') }}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Reportes de Preguntas</title>
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #003366;
+            --hover-color: #00509e;
+            --bg-color: #f4f7f6;
+            --danger: #dc3545;
+            --success: #28a745;
+            --warning: #ff9800;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 30px 20px;
+        }
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary-color), #001a33);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,51,102,0.3);
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .header-bar h1 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        .header-bar .badge-count {
+            background-color: var(--danger);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .btn-back {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            transition: 0.2s;
+            max-width: 1000px;
+        }
+        .btn-back:hover { background-color: var(--hover-color); }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* --- TARJETA DE REPORTE --- */
+        .reporte-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border-left: 6px solid var(--warning);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .reporte-header {
+            background: linear-gradient(to right, #fff3e0, #ffffff);
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .reporte-header .info-badges span {
+            display: inline-block;
+            background-color: #e9ecef;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            color: #555;
+            margin-right: 8px;
+        }
+        .reporte-motivo {
+            padding: 15px 25px;
+            background-color: #fffbf0;
+            border-bottom: 1px solid #eee;
+        }
+        .reporte-motivo strong { color: var(--danger); }
+        .pregunta-preview {
+            padding: 20px 25px;
+        }
+        .pregunta-preview .question-text {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .opciones-grid {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .opcion-box {
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+            display: flex;
+            align-items: center;
+        }
+        .opcion-box.correct {
+            border-color: var(--success);
+            background-color: #d4edda;
+        }
+        .opcion-letter {
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 1.1em;
+            color: #555;
+        }
+        .correct .opcion-letter { color: #155724; }
+
+        .reporte-acciones {
+            padding: 15px 25px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-resolver {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-resolver:hover {
+            background-color: #218838;
+            transform: translateY(-1px);
+        }
+        .btn-ver-pregunta {
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1em;
+            transition: 0.3s;
+        }
+        .btn-ver-pregunta:hover { background-color: var(--hover-color); }
+
+        .proc-box {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-left: 4px solid var(--warning);
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.95em;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        }
+        .empty-state .icon { font-size: 4em; margin-bottom: 15px; }
+        .empty-state h2 { color: var(--success); margin-bottom: 10px; }
+        .empty-state p { color: #777; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="/seleccion_nivel" class="btn-back">← Volver al inicio</a>
+
+        <div class="header-bar">
+            <h1>🛡️ Panel de Administración — Reportes</h1>
+            <span class="badge-count">{{ reportes|length }} pendiente{{ 's' if reportes|length != 1 else '' }}</span>
+        </div>
+
+        {% if reportes %}
+            {% for r in reportes %}
+            <div class="reporte-card" id="reporte-{{ r.id }}">
+                <div class="reporte-header">
+                    <div class="info-badges">
+                        {% set p = r.pregunta if r.pregunta else r.pregunta_lectura %}
+                        {% set p_id = p.id if r.pregunta else ('L_' ~ p.id) %}
+                        <span>📋 Reporte #{{ r.id }}</span>
+                        <span>🔖 ID: {{ p_id }}</span>
+                        <span>📚 {% if r.pregunta_lectura %}Comp. Lectora{% else %}{{ p.materia }}{% endif %}</span>
+                        <span>📅 {{ r.fecha.strftime('%d/%m/%Y %H:%M') }}</span>
+                        {% if r.usuario %}
+                        <span>👤 {{ r.usuario.username }}</span>
+                        {% else %}
+                        <span>👤 Anónimo</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="reporte-motivo">
+                    <strong>🚩 Motivo del reporte:</strong>
+                    <p style="margin: 8px 0 0 0;">{{ r.motivo }}</p>
+                </div>
+
+                <div class="pregunta-preview">
+                    {% set p = r.pregunta if r.pregunta else r.pregunta_lectura %}
+                    {% if r.pregunta_lectura %}
+                        <div style="background: #f1f3f5; padding: 10px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid #003366;">
+                            <strong>Lectura: {{ p.lectura.titulo }}</strong>
+                        </div>
+                    {% endif %}
+                    
+                    <h4 style="color: var(--primary-color); margin-top: 0;">Vista previa de la pregunta:</h4>
+                    <div class="question-text">
+                        <strong>{{ p.texto_pregunta | safe }}</strong>
+                    </div>
+
+                    {% if p.imagen %}
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        {% if p.imagen.endswith('.png') or p.imagen.endswith('.jpg') %}
+                            <img src="{{ url_for('static', filename='img/' + p.imagen) }}" alt="Imagen" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
+                        {% else %}
+                            <div style="background: #e9ecef; padding: 10px; display: inline-block; font-weight: bold;">{{ p.imagen | safe }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                        {% for opt in ['a', 'b', 'c', 'd'] %}
+                        <div class="opcion-box {% if p.respuesta_correcta == opt|upper %}correct{% endif %}">
+                            <span class="opcion-letter">{{ opt|upper }})</span>
+                            <div>
+                                {% set opt_val = p['opcion_' + opt] %}
+                                {% if opt_val.endswith('.png') or opt_val.endswith('.jpg') %}
+                                    <img src="{{ url_for('static', filename='img/' + opt_val) }}" style="max-height: 80px;">
+                                {% else %}{{ opt_val | safe }}{% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <p style="color: #555;"><strong>Respuesta correcta registrada:</strong> <span style="color: var(--success); font-weight: bold; font-size: 1.2em;">{{ p.respuesta_correcta }}</span></p>
+
+                    {% if p.procedimiento %}
+                    <div class="proc-box">
+                        <strong>Procedimiento:</strong><br>
+                        {{ p.procedimiento | safe }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="reporte-acciones">
+                    <a href="/pregunta/{{ p_id }}" target="_blank" class="btn-ver-pregunta">🔍 Ver Bloque Completo</a>
+                    <button class="btn-resolver" onclick="resolverReporte({{ r.id }})">✅ Marcar como Resuelto</button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="icon">✅</div>
+                <h2>¡Sin reportes pendientes!</h2>
+                <p>No hay preguntas reportadas por resolver en este momento.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        async function resolverReporte(id) {
+            if (!confirm('¿Confirmas que este reporte ya fue revisado y resuelto?')) return;
+
+            try {
+                const response = await fetch('/admin/resolver_reporte/' + id, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    const card = document.getElementById('reporte-' + id);
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateX(60px)';
+                    setTimeout(() => {
+                        card.remove();
+                        // Actualizar contador
+                        const remaining = document.querySelectorAll('.reporte-card');
+                        const badge = document.querySelector('.badge-count');
+                        if (badge) {
+                            badge.textContent = remaining.length + ' pendiente' + (remaining.length !== 1 ? 's' : '');
+                        }
+                        if (remaining.length === 0) {
+                            location.reload();
+                        }
+                    }, 500);
+                } else {
+                    alert('Error al resolver el reporte.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión.');
+            }
+        }
+    </script>
+
+</body>
+</html>

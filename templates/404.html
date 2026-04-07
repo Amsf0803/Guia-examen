@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="icon" href="{{ url_for('static', filename='img/LIA_Mini.png') }}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Página No Encontrada</title>
+    <style>
+        :root {
+            --primary-color: #003366;
+            --hover-color: #00509e;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 60px 50px;
+            max-width: 500px;
+            width: 90%;
+            border-top: 6px solid var(--primary-color);
+        }
+
+        .error-code {
+            font-size: 7em;
+            font-weight: 900;
+            color: var(--primary-color);
+            margin: 0;
+            line-height: 1;
+            letter-spacing: -4px;
+        }
+
+        .error-icon {
+            font-size: 4em;
+            margin: 15px 0;
+        }
+
+        h2 {
+            color: #333;
+            margin: 10px 0 15px;
+            font-size: 1.5em;
+        }
+
+        p {
+            color: #666;
+            font-size: 1.05em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn-home {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 35px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.15em;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
+        }
+
+        .btn-home:hover {
+            background-color: var(--hover-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 51, 102, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <p class="error-code">404</p>
+        <div class="error-icon">🔍</div>
+        <h2>Página No Encontrada</h2>
+        <p>La ruta que buscas no existe o fue movida. Verifica la dirección e intenta de nuevo.</p>
+        <a href="/" class="btn-home">🏠 Ir al Menú Principal</a>
+    </div>
+</body>
+
+</html>

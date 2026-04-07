@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{{ url_for("static", filename="img/LIA_Mini.png") }}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ lectura.titulo }} - Detalle de Bloque</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 1200px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .lectura-col { padding: 40px; background-color: #f9f9f9; border-right: 1px solid #ddd; height: 85vh; overflow-y: auto; }
+        .preguntas-col { padding: 40px; height: 85vh; overflow-y: auto; background: white; }
+        .lectura-titulo { color: #003366; border-bottom: 3px solid #003366; padding-bottom: 10px; margin-top: 0; }
+        .materia-badge { display: inline-block; background: #003366; color: white; padding: 4px 12px; border-radius: 4px; margin-bottom: 15px; font-weight: bold; }
+        .pregunta-card { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .opcion-correcta { background-color: #d4edda; color: #155724; padding: 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 10px; }
+        .btn-volver { margin-top: 20px; background: #003366; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; }
+        .procedimiento { margin-top: 15px; padding: 15px; background-color: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px; font-size: 0.9em; }
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } .lectura-col, .preguntas-col { height: auto; } }
+    </style>
+</head>
+<body>
+
+    <div class="materia-badge">Competencia Lectora - {{ nivel }}</div>
+
+    <div class="container">
+        <div class="lectura-col">
+            <h1 class="lectura-titulo">{{ lectura.titulo }}</h1>
+            
+            {% if lectura.imagenes %}
+                {% for img in lectura.imagenes.split(',') %}
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="{{ url_for('static', filename='img/' + img.strip()) }}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <div style="line-height: 1.7; font-size: 1.1em; color: #333;">
+                {{ lectura.texto_lectura | safe }}
+            </div>
+
+            {% if lectura.referencia %}
+                <p style="font-size: 0.9em; color: #666; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; font-style: italic;">
+                    Fuente: {{ lectura.referencia }}
+                </p>
+            {% endif %}
+        </div>
+
+        <div class="preguntas-col">
+            <h2 style="color: #666; margin-top: 0;">Reactivos del Bloque</h2>
+            {% for p in lectura.preguntas %}
+            <div class="pregunta-card">
+                <p><strong>{{ loop.index }}. {{ p.texto_pregunta | safe }}</strong></p>
+                
+                {% if p.imagen %}
+                <div style="text-align: center; margin: 15px 0;">
+                    <img src="{{ url_for('static', filename='img/' + p.imagen) }}" style="max-width: 100%; max-height: 200px; border-radius: 6px;">
+                </div>
+                {% endif %}
+
+                <div style="margin-left: 20px; color: #555;">
+                    <p>A) {{ p.opcion_a | safe }}</p>
+                    <p>B) {{ p.opcion_b | safe }}</p>
+                    <p>C) {{ p.opcion_c | safe }}</p>
+                    <p>D) {{ p.opcion_d | safe }}</p>
+                </div>
+
+                <div class="opcion-correcta">Respuesta Correcta: {{ p.respuesta_correcta }}</div>
+
+                {% if p.procedimiento %}
+                    <div class="procedimiento">
+                        <strong>Procedimiento:</strong><br>
+                        {{ p.procedimiento | safe }}
+                    </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <a href="{{ url_for('dudas_menu') }}" class="btn-volver">Volver al Buscador / Dudas</a>
+    </div>
+
+</body>
+</html>

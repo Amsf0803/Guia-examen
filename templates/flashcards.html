@@ -91,6 +91,20 @@
         }
         .opcion-radio { display: none; }
 
+        .btn-reportar-fc { background-color: #dc3545; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight: bold; transition: 0.3s; margin-top: 15px; width: 100%; }
+        .btn-reportar-fc:hover { background-color: #c82333; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: white; border-radius: 12px; padding: 30px; max-width: 450px; width: 90%; box-shadow: 0 15px 40px rgba(0,0,0,0.3); border-top: 5px solid #dc3545; }
+        .modal-box h3 { margin-top: 0; color: #dc3545; }
+        .modal-box textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; box-sizing: border-box; resize: vertical; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
+        .modal-btns button { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1em; }
+        .modal-btn-enviar { background-color: #dc3545; color: white; }
+        .modal-btn-enviar:hover { background-color: #c82333; }
+        .modal-btn-cancelar { background-color: #6c757d; color: white; }
+        .modal-btn-cancelar:hover { background-color: #5a6268; }
+
     </style>
 </head>
 <body>
@@ -175,6 +189,7 @@
                 {% endif %}
                 
                 <button class="btn-flip" style="background-color: #6c757d; margin-top: 25px;" onclick="voltearAPregunta()">⬅ Voltear para ver Pregunta</button>
+                <button type="button" class="btn-reportar-fc" onclick="abrirReporte({{ pregunta.id }})">🚩 Reportar esta pregunta</button>
             </div>
 
         </div>
@@ -220,6 +235,52 @@
     {% else %}
         <h2>No hay preguntas disponibles en la base de datos para el nivel {{ nivel }}.</h2>
     {% endif %}
+
+    <!-- MODAL DE REPORTE -->
+    <div class="modal-overlay" id="modal-reporte">
+        <div class="modal-box">
+            <h3>🚩 Reportar Pregunta</h3>
+            <p style="color: #666; margin-top: 0;">Describe el problema que encontraste en esta pregunta.</p>
+            <input type="hidden" id="reporte-pregunta-id">
+            <textarea id="reporte-motivo" placeholder="Escribe el motivo del reporte..."></textarea>
+            <div class="modal-btns">
+                <button type="button" class="modal-btn-cancelar" onclick="cerrarReporte()">Cancelar</button>
+                <button type="button" class="modal-btn-enviar" onclick="enviarReporte()">Enviar Reporte</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function abrirReporte(id) {
+            document.getElementById('reporte-pregunta-id').value = id;
+            document.getElementById('reporte-motivo').value = '';
+            document.getElementById('modal-reporte').classList.add('active');
+        }
+        function cerrarReporte() {
+            document.getElementById('modal-reporte').classList.remove('active');
+        }
+        async function enviarReporte() {
+            const id = document.getElementById('reporte-pregunta-id').value;
+            const motivo = document.getElementById('reporte-motivo').value.trim();
+            if (!motivo) { alert('Por favor escribe el motivo del reporte.'); return; }
+            try {
+                const response = await fetch('/reportar_pregunta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: parseInt(id), motivo: motivo })
+                });
+                if (response.ok) {
+                    alert('✅ Reporte enviado. Un administrador lo revisará.');
+                    cerrarReporte();
+                } else {
+                    alert('Error al enviar el reporte.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión.');
+            }
+        }
+    </script>
 
 </body>
 </html>

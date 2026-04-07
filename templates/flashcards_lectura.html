@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{{ url_for("static", filename="img/LIA_Mini.png") }}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard - Competencia Lectora</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .materia-badge { background-color: #003366; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; margin-bottom: 20px; }
+        
+        .flashcard-container { width: 95%; max-width: 1200px; perspective: 1000px; height: 80vh; min-height: 600px; }
+        .flashcard { width: 100%; height: 100%; position: relative; transition: transform 0.8s; transform-style: preserve-3d; cursor: pointer; }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        
+        .card-front, .card-back { 
+            position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; 
+            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: white; overflow: hidden;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+        }
+        .card-back { transform: rotateY(180deg); }
+
+        .lectura-col { padding: 30px; background-color: #f9f9f9; border-right: 1px solid #eee; overflow-y: auto; text-align: left; }
+        .preguntas-col { padding: 30px; overflow-y: auto; text-align: left; background: white; }
+
+        .btn-check { position: fixed; bottom: 30px; background-color: #28a745; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 1.2em; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4); z-index: 10; transition: 0.3s; }
+        .btn-check:hover { transform: scale(1.05); background-color: #218838; }
+
+        .pregunta-item { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .opciones label { display: block; margin: 5px 0; padding: 8px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 0.9em; }
+        
+        .resultado-icon { font-size: 1.2em; margin-left: 10px; }
+        .correcta { border: 2px solid #28a745 !important; background-color: #d4edda !important; }
+        .incorrecta { border: 2px solid #dc3545 !important; background-color: #f8d7da !important; }
+        
+        .btn-next { background-color: #003366; color: white; border: none; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 20px; display: inline-block; }
+        
+        @media (max-width: 900px) {
+            .card-front, .card-back { grid-template-columns: 1fr; }
+            .lectura-col { max-height: 40%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="materia-badge">Competencia Lectora - {{ nivel }}</div>
+
+    <div class="flashcard-container">
+        <div class="flashcard" id="card">
+            <!-- FRENTE: Lectura + Preguntas -->
+            <div class="card-front">
+                <div class="lectura-col">
+                    <h2 style="color: #003366;">{{ lectura.titulo }}</h2>
+                    <div style="line-height: 1.6;">{{ lectura.texto_lectura | safe }}</div>
+                </div>
+                <div class="preguntas-col" onclick="event.stopPropagation()">
+                    <h3 style="color: #666; margin-top: 0;">Responde los 10 reactivos:</h3>
+                    {% for p in lectura.preguntas %}
+                    <div class="pregunta-item" id="item-{{ p.id }}">
+                        <p><strong>{{ loop.index }}. {{ p.texto_pregunta | safe }}</strong></p>
+                        <div class="opciones">
+                            {% for opt in ['A', 'B', 'C', 'D'] %}
+                            <label>
+                                <input type="radio" name="resp_{{ p.id }}" value="{{ opt }}"> {{ opt }}) {{ p['opcion_' + opt.lower()] | safe }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div style="height: 100px;"></div> <!-- Espacio para el botón -->
+                </div>
+            </div>
+
+            <!-- ATRÁS: Soluciones -->
+            <div class="card-back">
+                <div class="lectura-col">
+                    <h2 style="color: #003366;">Solucionario: {{ lectura.titulo }}</h2>
+                    <p>Revisa tus respuestas y analiza los procedimientos.</p>
+                    <a href="{{ url_for('flashcards', nivel=nivel, area=area) }}" class="btn-next">Siguiente Flashcard ➔</a>
+                    <br><br>
+                    <a href="{{ url_for('menu_superior') if nivel == 'Superior' else url_for('menu_medio_superior') }}" style="color: #666;">Volver al Menú</a>
+                </div>
+                <div class="preguntas-col">
+                    {% for p in lectura.preguntas %}
+                    <div class="pregunta-item">
+                        <p><strong>{{ loop.index }}. {{ p.texto_pregunta | safe }}</strong></p>
+                        <p style="color: #28a745; font-weight: bold;">Correcta: {{ p.respuesta_correcta }}</p>
+                        {% if p.procedimiento %}
+                        <div style="font-size: 0.9em; background: #f8f9fa; padding: 10px; border-radius: 4px; border-left: 3px solid #003366;">
+                            {{ p.procedimiento | safe }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-check" id="btn-check" onclick="validarYVoltear()">Verificar Respuestas</button>
+
+    <script>
+        const respuestasCorrectas = {
+            {% for p in lectura.preguntas %}
+            "{{ p.id }}": "{{ p.respuesta_correcta }}",
+            {% endfor %}
+        };
+
+        function validarYVoltear() {
+            let todasRespondidas = true;
+            // Validar visualmente en el frente antes de voltear
+            for (let id in respuestasCorrectas) {
+                const check = document.querySelector(`input[name="resp_${id}"]:checked`);
+                const item = document.getElementById(`item-${id}`);
+                
+                if (!check) {
+                    item.style.backgroundColor = "#fff3cd";
+                    todasRespondidas = false;
+                } else {
+                    const esCorrecta = (check.value === respuestasCorrectas[id]);
+                    item.classList.add(esCorrecta ? 'correcta' : 'incorrecta');
+                }
+            }
+
+            if (!todasRespondidas) {
+                if (!confirm("No has respondido todas las preguntas. ¿Quieres ver las soluciones de todos modos?")) return;
+            }
+
+            document.getElementById('card').classList.add('flipped');
+            document.getElementById('btn-check').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

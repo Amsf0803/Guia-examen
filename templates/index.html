@@ -142,6 +142,9 @@
         <span>Bienvenido, <strong>{{ current_user.username }}</strong>!</span>
         <a href="/dashboard?retorno={{ url_retorno }}" style="color: white; margin-left: 15px; font-weight: bold; text-decoration: none;">📊 Mi
             Progreso</a>
+        {% if current_user.is_admin %}
+        <a href="/admin/reportes" style="color: #ff5722; margin-left: 15px; font-weight: bold; text-decoration: none;">🛡️ Panel Admin</a>
+        {% endif %}
         <a href="/logout" style="color: #ff9800; margin-left: 15px; font-weight: bold; text-decoration: none;">Salir</a>
         {% else %}
         <a href="/login" style="color: white; font-weight: bold; margin-left: 15px; text-decoration: none;">Iniciar
