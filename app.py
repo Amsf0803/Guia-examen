@@ -57,6 +57,7 @@ class Pregunta(db.Model):
 class Lectura(db.Model):
     __tablename__ = 'lecturas'
     id = db.Column(db.Integer, primary_key=True)
+    materia = db.Column(db.String(50), nullable=False, default='Competencia Lectora') # NUEVA COLUMNA
     titulo = db.Column(db.String(250), nullable=False)
     texto_lectura = db.Column(db.Text, nullable=False)
     imagenes = db.Column(db.String(250), nullable=True) 
@@ -102,28 +103,30 @@ class ReportePregunta(db.Model):
     usuario = db.relationship('Usuario', backref=db.backref('reportes', lazy=True))
 # <--- FIN CORRECCIÓN ORDEN
 
+
+
 with app.app_context():
     db.create_all()
-    # Migración: agregar columna is_admin si no existe
     import sqlite3
     conn = sqlite3.connect('instance/simulador.db')
     cursor = conn.cursor()
-    try:
-        cursor.execute("ALTER TABLE usuario ADD COLUMN is_admin BOOLEAN DEFAULT 0")
+    
+    try: cursor.execute("ALTER TABLE usuario ADD COLUMN is_admin BOOLEAN DEFAULT 0")
     except sqlite3.OperationalError: pass
 
-    # MIGRACIÓN: Nuevas columnas para Competencia Lectora
-    try:
-        cursor.execute("ALTER TABLE pregunta_duda ADD COLUMN pregunta_lectura_id INTEGER REFERENCES preguntas_lectura(id)")
+    try: cursor.execute("ALTER TABLE lecturas ADD COLUMN materia VARCHAR(50) DEFAULT 'Competencia Lectora' NOT NULL")
     except sqlite3.OperationalError: pass
-    try:
-        cursor.execute("ALTER TABLE reporte_pregunta ADD COLUMN pregunta_lectura_id INTEGER REFERENCES preguntas_lectura(id)")
+
+    try: cursor.execute("ALTER TABLE pregunta_duda ADD COLUMN pregunta_lectura_id INTEGER REFERENCES preguntas_lectura(id)")
     except sqlite3.OperationalError: pass
-    # Añadiendo campo de procedimiento que faltaba en PreguntaLectura
-    try:
-        cursor.execute("ALTER TABLE preguntas_lectura ADD COLUMN procedimiento TEXT")
+
+    try: cursor.execute("ALTER TABLE reporte_pregunta ADD COLUMN pregunta_lectura_id INTEGER REFERENCES preguntas_lectura(id)")
+    except sqlite3.OperationalError: pass
+
+    try: cursor.execute("ALTER TABLE preguntas_lectura ADD COLUMN procedimiento TEXT")
     except sqlite3.OperationalError: pass
     
+    # ¡SOLO SE GUARDA Y CIERRA UNA VEZ AL FINAL!
     conn.commit()
     conn.close()
 
@@ -140,6 +143,11 @@ with app.app_context():
     elif not admin.is_admin:
         admin.is_admin = True
         db.session.commit()
+
+
+
+
+
 
 from temario import temario_estudio
 
@@ -250,13 +258,13 @@ def flashcards(nivel="Superior"):
         
     materia_limpia = limpiar_materia(pregunta.materia) if pregunta else ""
     
-    # NUEVO: Si la materia es Competencia Lectora, devolvemos la lectura completa
-    if materia_limpia == "Competencia Lectora":
-        # En la tabla Pregunta no hay Comp. Lectora (según las nuevas reglas)
-        # Así que si llegamos aquí es porque se pidió específicamente o se coló.
-        # Buscamos una lectura aleatoria.
-        lectura = Lectura.query.order_by(db.func.random()).first()
+    # CAMBIO: Soportar tanto Competencia Lectora como Inglés en formato bloque
+    if materia_limpia in ["Competencia Lectora", "Inglés"]:
+        # Filtramos para asegurarnos de que la lectura sea de la materia que el usuario eligió
+        lectura = Lectura.query.filter_by(materia=materia_limpia).order_by(db.func.random()).first()
         return render_template('flashcards_lectura.html', lectura=lectura, nivel=nivel, area=area)
+        
+    return render_template('flashcards.html', pregunta=pregunta, nivel=nivel, area=area, materia_limpia=materia_limpia)
         
     return render_template('flashcards.html', pregunta=pregunta, nivel=nivel, area=area, materia_limpia=materia_limpia)
 
@@ -521,27 +529,81 @@ def iniciar_examen():
             if not p_emergencia: break 
             preguntas_seleccionadas.append(p_emergencia)
 
-        # REGLAS RECTIFICADAS PARA COMPETENCIA LECTORA (AL FINAL)
+        # REGLAS RECTIFICADAS PARA BLOQUES (COMPETENCIA LECTORA E INGLÉS)
         if nivel == 'Superior' or nivel == 'Medio Superior':
-            num_lecturas = 0
-            if total_objetivo == 140: num_lecturas = 2
-            elif total_objetivo == 50: num_lecturas = 1
-            
-            if num_lecturas > 0:
-                # SOLUCIÓN: Hacemos un JOIN con PreguntaLectura para poder filtrar por su nivel
-                nivel_buscar = nivel if nivel == 'Superior' else 'Superior'
-                lecturas_disponibles = Lectura.query.join(PreguntaLectura).filter(PreguntaLectura.nivel == nivel_buscar).distinct().all()
+            # Limpiamos las individuales para que no se filtren sueltas
+            preguntas_seleccionadas = [p for p in preguntas_seleccionadas if p.materia not in ['Competencia Lectora', 'Inglés']]
+            nivel_buscar = nivel if nivel == 'Superior' else 'Superior'
 
-                lecturas_seleccionadas = random.sample(lecturas_disponibles, min(len(lecturas_disponibles), num_lecturas))
+            # 1. PREPARAMOS LOS INVENTARIOS DE LECTURAS
+            lecturas_esp_todas = Lectura.query.filter_by(materia='Competencia Lectora').join(PreguntaLectura).filter(PreguntaLectura.nivel == nivel_buscar).distinct().all()
+            lecturas_ing_todas = Lectura.query.filter_by(materia='Inglés').join(PreguntaLectura).filter(PreguntaLectura.nivel == nivel_buscar).distinct().all()
+            
+            # Clasificamos las de inglés por su tamaño
+            ing_4 = [lec for lec in lecturas_ing_todas if len(lec.preguntas) == 4]
+            ing_6 = [lec for lec in lecturas_ing_todas if len(lec.preguntas) == 6]
+            ing_8 = [lec for lec in lecturas_ing_todas if len(lec.preguntas) == 8]
+
+            # 2. ASIGNACIÓN SEGÚN EL TIEMPO
+            if total_objetivo == 140:
+                # 3 HORAS: 2 Español (20p) + 2 Inglés (6p+4p=10p)
+                lecturas_seleccionadas.extend(random.sample(lecturas_esp_todas, min(len(lecturas_esp_todas), 2)))
+                if ing_6 and ing_4:
+                    lecturas_seleccionadas.append(random.choice(ing_6))
+                    lecturas_seleccionadas.append(random.choice(ing_4))
+                    
+            elif total_objetivo == 50:
+                # 1 HORA: 1 Español (10p) + Inglés (una de 8p O dos de 4p)
+                lecturas_seleccionadas.extend(random.sample(lecturas_esp_todas, min(len(lecturas_esp_todas), 1)))
+                opcion_ing = random.choice(['una_de_8', 'dos_de_4'])
+                if opcion_ing == 'una_de_8' and ing_8:
+                    lecturas_seleccionadas.append(random.choice(ing_8))
+                elif len(ing_4) >= 2:
+                    lecturas_seleccionadas.extend(random.sample(ing_4, 2))
+                    
+            elif total_objetivo == 25:
+                # 30 MINUTOS: ¡SORPRESA MÁXIMA! 1 Español (10p) Ó 1 Inglés (6p) Ó Ninguna (0p)
+                moneda = random.choice(['espanol', 'ingles', 'ninguna'])
+                if moneda == 'espanol' and lecturas_esp_todas:
+                    lecturas_seleccionadas.append(random.choice(lecturas_esp_todas))
+                elif moneda == 'ingles' and ing_6:
+                    lecturas_seleccionadas.append(random.choice(ing_6))
+                # Si cae 'ninguna', lecturas_seleccionadas se queda vacío y usarás 25 preguntas de materias normales.
+                    
+            elif total_objetivo == 12:
+                # 15 MINUTOS: ¡SORPRESA MÁXIMA! 1 Español (10p) Ó 1 Inglés (4p) Ó Ninguna (0p)
+                moneda = random.choice(['espanol', 'ingles', 'ninguna'])
+                if moneda == 'espanol' and lecturas_esp_todas:
+                    lecturas_seleccionadas.append(random.choice(lecturas_esp_todas))
+                elif moneda == 'ingles' and ing_4:
+                    lecturas_seleccionadas.append(random.choice(ing_4))
+                # Si cae 'ninguna', lecturas_seleccionadas se queda vacío y usarás 12 preguntas de materias normales.
+
+            # 3. RECORTE FINAL DE INDIVIDUALES
+            # Ajustamos el total contando exactamente cuántas preguntas tiene cada lectura elegida
+            total_preguntas_en_bloques = sum([len(lec.preguntas) for lec in lecturas_seleccionadas])
+            limite_individuales = total_objetivo - total_preguntas_en_bloques
+            
+            # Recortamos de la lista normal de Matemáticas, Física, etc. para que la suma cuadre exacto
+            while len(preguntas_seleccionadas) > limite_individuales:
+                preguntas_seleccionadas.pop()
 
     elif modalidad == 'materia':
         materia_elegida = request.form.get('materia')
-        if materia_elegida == 'Competencia Lectora':
+        # CAMBIO: Agregamos "Inglés" para que también lo trate como Bloque de Lectura
+        if materia_elegida in ['Competencia Lectora', 'Inglés']:
             cantidad = int(request.form.get('cantidad'))
-            num_lecturas = max(1, cantidad // 10)
-            lecturas_disponibles = Lectura.query.all()
+            # Calculamos aprox cuántas lecturas sacar según la cantidad pedida
+            num_lecturas = max(1, cantidad // 10) 
+            
+            # IMPORTANTE: Filtrar para que solo traiga lecturas de esa materia específica
+            lecturas_disponibles = Lectura.query.filter_by(materia=materia_elegida).all()
+            
             lecturas_seleccionadas = random.sample(lecturas_disponibles, min(len(lecturas_disponibles), num_lecturas))
-            tiempo_minutos = int(num_lecturas * 10 * 1.5)
+            
+            # Calculamos el tiempo exacto basado en las preguntas reales que salieron
+            total_preguntas = sum([len(lec.preguntas) for lec in lecturas_seleccionadas])
+            tiempo_minutos = int(total_preguntas * 1.5)
         else:
             materia_real = obtener_materia_area(materia_elegida, area)
             cantidad = int(request.form.get('cantidad'))
@@ -573,7 +635,8 @@ def calificar():
         if str(pregunta_id_raw).startswith('L_'):
             real_id = int(str(pregunta_id_raw).replace('L_', ''))
             pregunta_db = db.session.get(PreguntaLectura, real_id)
-            materia_limpia = "Competencia Lectora"
+            # CAMBIO: Ahora toma la materia correcta (Inglés o Competencia Lectora)
+            materia_limpia = pregunta_db.lectura.materia if pregunta_db else "Desconocida"
         else:
             pregunta_db = db.session.get(Pregunta, int(pregunta_id_raw))
             materia_limpia = limpiar_materia(pregunta_db.materia) if pregunta_db else "Desconocida"
