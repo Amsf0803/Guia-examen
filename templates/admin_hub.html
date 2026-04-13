@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{{ url_for('static', filename='img/LIA_Mini.png') }}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 30px 20px;
+        }
+        .container { max-width: 800px; margin: auto; }
+        .header-bar {
+            background: linear-gradient(135deg, #003366, #001a33);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,51,102,0.3);
+        }
+        .header-bar h1 { margin: 0; font-size: 1.6em; }
+        .header-bar p { margin: 8px 0 0; opacity: 0.8; }
+        .btn-back {
+            display: inline-block;
+            background-color: #003366;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        .btn-back:hover { background-color: #00509e; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .admin-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px 25px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-top: 5px solid #003366;
+        }
+        .admin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+        }
+        .admin-card .icon { font-size: 2.5em; margin-bottom: 15px; }
+        .admin-card h3 { margin: 0 0 8px; color: #003366; }
+        .admin-card p { margin: 0; color: #777; font-size: 0.9em; }
+        .admin-card.reportes { border-top-color: #dc3545; }
+        .admin-card.reportes h3 { color: #dc3545; }
+        .admin-card.pendientes { border-top-color: #ff9800; }
+        .admin-card.pendientes h3 { color: #ff9800; }
+        .admin-card.gestor { border-top-color: #28a745; }
+        .admin-card.gestor h3 { color: #28a745; }
+        .admin-card.sugerencias { border-top-color: #17a2b8; }
+        .admin-card.sugerencias h3 { color: #17a2b8; }
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="{{ retorno or '/seleccion_nivel' }}" class="btn-back">⬅️ Volver</a>
+
+    <div class="header-bar">
+        <h1>🛡️ Panel de Administración</h1>
+        <p>Gestión completa del simulador</p>
+    </div>
+
+    <div class="grid">
+        <a href="/admin/reportes" class="admin-card reportes">
+            <div class="icon">🚩</div>
+            <h3>Reportes</h3>
+            <p>Revisar preguntas reportadas por los estudiantes</p>
+        </a>
+
+        <a href="/admin/preguntas_pendientes" class="admin-card pendientes">
+            <div class="icon">⏳</div>
+            <h3>Preguntas Pendientes</h3>
+            <p>Aceptar o rechazar preguntas enviadas por colaboradores</p>
+        </a>
+
+        <a href="/admin/preguntas_oficiales" class="admin-card gestor">
+            <div class="icon">📚</div>
+            <h3>Gestor de Base de Datos</h3>
+            <p>Editar, eliminar y administrar preguntas oficiales</p>
+        </a>
+
+        <a href="/admin/sugerencias" class="admin-card sugerencias">
+            <div class="icon">📬</div>
+            <h3>Buzón de Sugerencias</h3>
+            <p>Ver y gestionar las sugerencias de los usuarios</p>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

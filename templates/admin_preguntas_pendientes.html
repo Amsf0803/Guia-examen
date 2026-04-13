@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{{ url_for('static', filename='img/LIA_Mini.png') }}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Preguntas Pendientes</title>
+    <!-- Summernote y dependencias -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote.min.js"></script>
+
+    <!-- MathJax -->
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #003366;
+            --hover-color: #00509e;
+            --bg-color: #f4f7f6;
+            --danger: #dc3545;
+            --success: #28a745;
+            --warning: #ff9800;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 30px 20px;
+        }
+        .header-bar {
+            background: linear-gradient(135deg, var(--warning), #e68a00);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(230, 138, 0, 0.3);
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .header-bar h1 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        .header-bar .badge-count {
+            background-color: #333;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .btn-back {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            transition: 0.2s;
+            max-width: 1000px;
+        }
+        .btn-back:hover { background-color: var(--hover-color);color:white; text-decoration:none; }
+
+        .container-custom {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pendiente-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border-top: 6px solid var(--warning);
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            font-weight: bold;
+            color: #444;
+        }
+
+        .btn-approve {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-approve:hover { background-color: #218838; transform: translateY(-1px); }
+
+        .btn-reject {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-reject:hover { background-color: #c82333; transform: translateY(-1px); }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        }
+        .empty-state .icon { font-size: 4em; margin-bottom: 15px; }
+        .empty-state h2 { color: var(--success); margin-bottom: 10px; }
+        .empty-state p { color: #777; font-size: 1.1em; }
+        
+        .alert { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container-custom">
+        <a href="/admin" class="btn-back">← Volver al Panel Admin</a>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert" style="border-radius:8px;">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="header-bar">
+            <h1 style="color:white; font-family:inherit;">⏳ Panel de Moderación — Pendientes</h1>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="/admin/reportes" style="background: white; color: var(--primary-color); padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.9em;">🛡️ Ver Reportes</a>
+                <span class="badge-count">{{ pendientes|length }} pendiente{{ 's' if pendientes|length != 1 else '' }}</span>
+            </div>
+        </div>
+
+        {% if pendientes %}
+            {% for p in pendientes %}
+            <div class="pendiente-card" id="pendiente-{{ p.id }}">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div>
+                        <h3 style="margin-top:0; color:var(--primary-color);">Revisión de Pregunta #{{ p.id }}</h3>
+                        <p style="color:#777; font-size:0.9em; margin-bottom: 5px;">Enviada el: {{ p.fecha_envio.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                    <div style="text-align:right; background: #e9ecef; padding: 10px; border-radius: 8px;">
+                        <div style="font-size: 0.85em; color: #555; margin-bottom: 3px;"><strong>Proyección al Aprobar:</strong></div>
+                        <div style="font-size: 0.9em;"><span style="color:var(--success);">ID Base:</span> <strong>{{ next_pregunta_id }}</strong></div>
+                        <div style="font-size: 0.9em;"><span style="color:var(--primary-color);">Cod. Imágenes:</span> <strong>pa{{ next_pa_n }}</strong></div>
+                    </div>
+                </div>
+                <hr>
+                
+                <details style="margin-bottom: 25px; border: 1px solid #00509e; border-radius: 8px; overflow: hidden;">
+                    <summary style="background: #00509e; color: white; padding: 12px 15px; cursor: pointer; font-weight: bold; outline: none; font-size: 1.05em;">
+                        👁️ Ver Aspecto Final Simulado (Cómo lo verá el estudiante)
+                    </summary>
+                    <div style="padding: 20px; background-color: #fafafa;">
+                        <span style="display: inline-block; background-color: #003366; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; margin-bottom: 10px;">{{ p.materia }}</span>
+                        <p style="font-size: 1.1em; margin-bottom: 15px;"><strong>X. {{ p.texto_pregunta | safe }}</strong></p>            
+                        
+                        {% if p.imagen_texto %}
+                            <div style="text-align: center; margin: 15px 0;">
+                                <div style="font-size: 1.2em; font-weight: bold; color: #003366; background-color: #e9ecef; padding: 15px; border-radius: 8px; display: inline-block; letter-spacing: 2px;">
+                                    {{ p.imagen_texto | safe }}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if p.imagen %}
+                            <div style="text-align: center; margin: 15px 0;">
+                                <img src="{{ url_for('static', filename='img/' + p.imagen) }}" alt="Apoyo visual" style="max-width: 100%; border-radius: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                            </div>
+                        {% endif %}
+
+                        <div style="margin-top:20px; display:flex; flex-direction:column; gap:10px;">
+                            {% for opt_l, opt_val in [('A', p.opcion_a), ('B', p.opcion_b), ('C', p.opcion_c), ('D', p.opcion_d)] %}
+                            <div style="padding:10px; border:1px solid #ccc; border-radius:4px; background: white;">
+                                <span style="font-weight: bold; margin-right: 10px;">{{ opt_l }})</span> 
+                                {% if opt_val and (opt_val.endswith('.png') or opt_val.endswith('.jpg') or opt_val.endswith('.webp')) %}
+                                    <img src="{{ url_for('static', filename='img/' + opt_val) }}" style="max-height: 80px; vertical-align: middle;">
+                                {% else %}
+                                    {{ opt_val | safe }}
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </details>
+
+                <form action="/admin/preguntas_pendientes/{{ p.id }}/accion" method="POST">
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Nivel</label>
+                            <select name="nivel" class="form-control">
+                                <option value="Superior" {% if p.nivel == 'Superior' %}selected{% endif %}>Superior</option>
+                                <option value="Medio Superior" {% if p.nivel == 'Medio Superior' %}selected{% endif %}>Medio Superior</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Materia</label>
+                            <input type="text" name="materia" class="form-control" value="{{ p.materia }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Texto de la Pregunta</label>
+                        <textarea class="summernote" name="texto_pregunta" required>{{ p.texto_pregunta | safe }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Texto Secundario (Ej. Ecuación)</label>
+                        <textarea class="summernote-small" name="imagen_texto">{{ p.imagen_texto | safe }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Imagen Adjunta (Si existe)</label>
+                        {% if p.imagen %}
+                            <div style="margin-bottom:10px;"><img src="{{ url_for('static', filename='img/' + p.imagen) }}" alt="Imagen P" style="max-height: 120px; border-radius: 4px; border:2px solid #ddd;"></div>
+                        {% endif %}
+                        <input type="text" name="imagen" class="form-control" value="{{ p.imagen or '' }}">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Opción A</label>
+                            {% if p.opcion_a and (p.opcion_a.endswith('.png') or p.opcion_a.endswith('.jpg') or p.opcion_a.endswith('.webp')) %}
+                                <div style="margin-bottom:10px;"><img src="{{ url_for('static', filename='img/' + p.opcion_a) }}" style="max-height: 80px; border-radius: 4px; border:2px solid #ddd;"></div>
+                            {% endif %}
+                            <textarea class="summernote-small" name="opcion_a" required>{{ p.opcion_a | safe }}</textarea>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Opción B</label>
+                            {% if p.opcion_b and (p.opcion_b.endswith('.png') or p.opcion_b.endswith('.jpg') or p.opcion_b.endswith('.webp')) %}
+                                <div style="margin-bottom:10px;"><img src="{{ url_for('static', filename='img/' + p.opcion_b) }}" style="max-height: 80px; border-radius: 4px; border:2px solid #ddd;"></div>
+                            {% endif %}
+                            <textarea class="summernote-small" name="opcion_b" required>{{ p.opcion_b | safe }}</textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Opción C</label>
+                            {% if p.opcion_c and (p.opcion_c.endswith('.png') or p.opcion_c.endswith('.jpg') or p.opcion_c.endswith('.webp')) %}
+                                <div style="margin-bottom:10px;"><img src="{{ url_for('static', filename='img/' + p.opcion_c) }}" style="max-height: 80px; border-radius: 4px; border:2px solid #ddd;"></div>
+                            {% endif %}
+                            <textarea class="summernote-small" name="opcion_c" required>{{ p.opcion_c | safe }}</textarea>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Opción D</label>
+                            {% if p.opcion_d and (p.opcion_d.endswith('.png') or p.opcion_d.endswith('.jpg') or p.opcion_d.endswith('.webp')) %}
+                                <div style="margin-bottom:10px;"><img src="{{ url_for('static', filename='img/' + p.opcion_d) }}" style="max-height: 80px; border-radius: 4px; border:2px solid #ddd;"></div>
+                            {% endif %}
+                            <textarea class="summernote-small" name="opcion_d" required>{{ p.opcion_d | safe }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Respuesta Correcta</label>
+                        <select name="respuesta_correcta" class="form-control">
+                            <option value="A" {% if p.respuesta_correcta == 'A' %}selected{% endif %}>A</option>
+                            <option value="B" {% if p.respuesta_correcta == 'B' %}selected{% endif %}>B</option>
+                            <option value="C" {% if p.respuesta_correcta == 'C' %}selected{% endif %}>C</option>
+                            <option value="D" {% if p.respuesta_correcta == 'D' %}selected{% endif %}>D</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Procedimiento Matemático (Opcional)</label>
+                        <textarea class="summernote-small" name="procedimiento">{{ p.procedimiento | safe }}</textarea>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; margin-top:25px;">
+                        <button type="button" class="btn-reject" onclick="confirmarRechazo(this)">❌ Rechazar y Eliminar</button>
+                        <button type="submit" name="accion" value="aprobar" class="btn-approve">✅ Modificar, Aprobar e Insertar</button>
+                    </div>
+                </form>
+
+                <!-- Formulario invisible para rechazo -->
+                <form action="/admin/preguntas_pendientes/{{ p.id }}/accion" method="POST" style="display:none;" class="form-rechazo">
+                    <input type="hidden" name="accion" value="rechazar">
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="icon">✨</div>
+                <h2>¡Todo al día!</h2>
+                <p>No hay preguntas pendientes por revisar. La base de datos está segura.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('.summernote').summernote({
+                height: 150,
+                toolbar: [
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['font', ['subscript', 'superscript']],
+                    ['insert', ['link', 'picture']]
+                ]
+            });
+            $('.summernote-small').summernote({
+                height: 80,
+                toolbar: [
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['font', ['subscript', 'superscript']],
+                    ['insert', ['picture']]
+                ]
+            });
+        });
+
+        function confirmarRechazo(btn) {
+            if(confirm("¿Estás seguro que deseas rechazar esta pregunta de forma permanente? No se agregará y se perderá.")) {
+                btn.closest('.pendiente-card').querySelector('.form-rechazo').submit();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{{ url_for('static', filename='img/LIA_Mini.png') }}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sugerencias - Simulador IPN</title>
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #6c1d45;
+            --bg: #f8f9fa;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            border-top: 8px solid var(--primary);
+        }
+        h1 {
+            color: var(--primary);
+            margin-top: 0;
+            text-align: center;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+            text-align: center;
+        }
+        form {
+            margin-top: 30px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            resize: vertical;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        button {
+            flex: 2;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+        button:hover {
+            background-color: #002244;
+            transform: translateY(-2px);
+        }
+        .btn-cancel {
+            flex: 1;
+            background-color: #e9ecef;
+            color: #333;
+            text-decoration: none;
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            line-height: normal;
+        }
+        .btn-cancel:hover { background-color: #dee2e6; }
+        .alert {
+            padding: 15px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Buzón de Sugerencias 📬</h1>
+        <p>Tu opinión nos ayuda a crecer. Cuéntanos qué te gustaría mejorar, qué errores has encontrado o qué nuevas funciones te gustaría ver en la plataforma.</p>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="/enviar_sugerencia" method="POST">
+            <textarea name="texto" placeholder="Escribe aquí tu sugerencia..." required></textarea>
+            <div class="btn-group">
+                <a href="/seleccion_nivel" class="btn-cancel">Cancelar</a>
+                <button type="submit">Enviar Sugerencia</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

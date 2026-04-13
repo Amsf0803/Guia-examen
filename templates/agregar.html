@@ -23,7 +23,7 @@
         <h2>Añadir Nueva Pregunta</h2>
         <div class="info-nivel">Agregando contenido para: {{ nivel_actual }}</div>
         
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <div class="form-group">
                 <label>Nivel Académico:</label>
                 <select name="nivel" id="nivel_select" required onchange="actualizarMaterias()">
@@ -41,12 +41,41 @@
             <div class="form-group">
                 <label>Pregunta (Acepta LaTeX con $):</label>
                 <textarea name="texto_pregunta" rows="3" required placeholder="Ej: Hallar el valor de $x$ en..."></textarea>
+                <div style="margin-top: 15px; padding: 10px; background: #fdfdfd; border: 1px dashed #ccc; border-radius: 6px;">
+                    <label style="font-size: 0.95em; color: #333;">Texto Complementario o Ecuación (Opcional):</label>
+                    <textarea name="imagen_texto" rows="2" placeholder="Ej: $A = \pi \cdot r^2$"></textarea>
+                    
+                    <label style="font-size: 0.9em; color: #555; margin-top:10px;">O adjunta una imagen principal para la pregunta (PNG, JPG, WEBP):</label>
+                    <input type="file" name="imagen_file" accept=".png,.jpg,.jpeg,.webp" style="font-size: 0.9em;">
+                    <p style="font-size: 0.8em; color: #777; margin-top:5px; margin-bottom:0;">Puedes usar ambos campos si deseas mostrar texto destacado junto a una imagen de referencia.</p>
+                </div>
             </div>
 
-            <div class="form-group"><label>Opción A:</label><input type="text" name="opcion_a" required></div>
-            <div class="form-group"><label>Opción B:</label><input type="text" name="opcion_b" required></div>
-            <div class="form-group"><label>Opción C:</label><input type="text" name="opcion_c" required></div>
-            <div class="form-group"><label>Opción D:</label><input type="text" name="opcion_d" required></div>
+            <div style="background: #e9ecef; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                <p style="margin-top: 0; font-size: 0.9em; color: #003366; font-weight: bold;">
+                    Nota sobre Opciones: Para cada opción, puedes escribir texto O subir un archivo de imagen, pero no ambos a la vez. Si seleccionas un archivo, la opción se guardará como la imagen adjunta en lugar del cuadro de texto.
+                </p>
+                <div class="form-group">
+                    <label>Opción A:</label>
+                    <input type="text" name="opcion_a">
+                    <input type="file" name="opcion_a_file" accept=".png,.jpg,.jpeg,.webp" style="margin-top: 5px; font-size: 0.85em;">
+                </div>
+                <div class="form-group">
+                    <label>Opción B:</label>
+                    <input type="text" name="opcion_b">
+                    <input type="file" name="opcion_b_file" accept=".png,.jpg,.jpeg,.webp" style="margin-top: 5px; font-size: 0.85em;">
+                </div>
+                <div class="form-group">
+                    <label>Opción C:</label>
+                    <input type="text" name="opcion_c">
+                    <input type="file" name="opcion_c_file" accept=".png,.jpg,.jpeg,.webp" style="margin-top: 5px; font-size: 0.85em;">
+                </div>
+                <div class="form-group">
+                    <label>Opción D:</label>
+                    <input type="text" name="opcion_d">
+                    <input type="file" name="opcion_d_file" accept=".png,.jpg,.jpeg,.webp" style="margin-top: 5px; font-size: 0.85em;">
+                </div>
+            </div>
 
             <div class="form-group">
                 <label>Respuesta Correcta:</label>

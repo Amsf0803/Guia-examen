@@ -9,7 +9,7 @@ def exportar_raw_sqlalchemy(csv_file='respaldo_preguntas.csv'):
             # Le pedimos directamente a SQLAlchemy que ejecute SQL crudo 
             # pidiendo SOLO las columnas viejas (así evitamos el error de 'nivel')
             resultado = db.session.execute(text("""
-                SELECT id, materia, texto_pregunta, imagen, opcion_a, opcion_b, 
+                SELECT id, materia, texto_pregunta, imagen_texto, imagen, opcion_a, opcion_b, 
                        opcion_c, opcion_d, respuesta_correcta, procedimiento 
                 FROM pregunta
             """))
@@ -25,7 +25,7 @@ def exportar_raw_sqlalchemy(csv_file='respaldo_preguntas.csv'):
                 
                 # Escribimos los encabezados incluyendo la nueva columna 'nivel'
                 escritor.writerow([
-                    'id', 'nivel', 'materia', 'texto_pregunta', 'imagen', 
+                    'id', 'nivel', 'materia', 'texto_pregunta', 'imagen_texto', 'imagen', 
                     'opcion_a', 'opcion_b', 'opcion_c', 'opcion_d', 
                     'respuesta_correcta', 'procedimiento'
                 ])
@@ -34,16 +34,17 @@ def exportar_raw_sqlalchemy(csv_file='respaldo_preguntas.csv'):
                     # 'p' es una tupla con los resultados de nuestra consulta SQL
                     escritor.writerow([
                         p[0],        # id
-                        'Superior',  # Inyectamos el nivel manualmente
+                        'Superior',  # nivel
                         p[1],        # materia
                         p[2],        # texto_pregunta
-                        p[3] if p[3] else '', 
-                        p[4], 
-                        p[5], 
-                        p[6], 
-                        p[7], 
-                        p[8], 
-                        p[9] if p[9] else ''
+                        p[3] if p[3] else '', # imagen_texto
+                        p[4] if p[4] else '', # imagen
+                        p[5],        # opcion_a
+                        p[6],        # opcion_b
+                        p[7],        # opcion_c
+                        p[8],        # opcion_d
+                        p[9],        # respuesta_correcta
+                        p[10] if p[10] else '' # procedimiento
                     ])
                     
             print(f"✅ ¡Rescate exitoso! Se guardaron {len(preguntas)} preguntas en '{csv_file}'.")

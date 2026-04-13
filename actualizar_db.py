@@ -26,6 +26,7 @@ def sincronizar_preguntas(archivo_csv):
                     nivel = fila.get('nivel', 'Superior').strip()
                     materia = fila.get('materia', '').strip()
                     texto = fila.get('texto_pregunta', '').strip()
+                    img_txt = (fila.get('imagen_texto') or '').strip() or None
                     imagen = (fila.get('imagen') or '').strip() or None
                     op_a = fila.get('opcion_a', '').strip()
                     op_b = fila.get('opcion_b', '').strip()
@@ -44,6 +45,8 @@ def sincronizar_preguntas(archivo_csv):
                             pregunta_db.materia = materia; hay_cambios = True
                         if pregunta_db.texto_pregunta != texto:
                             pregunta_db.texto_pregunta = texto; hay_cambios = True
+                        if getattr(pregunta_db, 'imagen_texto', None) != img_txt:
+                            pregunta_db.imagen_texto = img_txt; hay_cambios = True
                         if pregunta_db.imagen != imagen:
                             pregunta_db.imagen = imagen; hay_cambios = True
                         if pregunta_db.opcion_a != op_a:
@@ -71,6 +74,7 @@ def sincronizar_preguntas(archivo_csv):
                             nivel=nivel,
                             materia=materia,
                             texto_pregunta=texto,
+                            imagen_texto=img_txt,
                             imagen=imagen,
                             opcion_a=op_a,
                             opcion_b=op_b,
@@ -99,3 +103,8 @@ def sincronizar_preguntas(archivo_csv):
 if __name__ == '__main__':
     # Pon aquí el nombre exacto de tu archivo CSV (ej. 'respaldo_archivos.csv')
     sincronizar_preguntas('respaldo_preguntas.csv')
+    sincronizar_preguntas('historia_superior.csv') 
+    sincronizar_preguntas('biologia_superior.csv')
+    sincronizar_preguntas('quimica_ingenieria_corregido.csv')
+    sincronizar_preguntas('fisica_ingenieria_corregido.csv')
+    

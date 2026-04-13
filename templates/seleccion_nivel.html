@@ -170,7 +170,7 @@
         {% if current_user.is_authenticated %}
         <span>Bienvenido, <strong>{{ current_user.username }}</strong>!</span>
         {% if current_user.is_admin %}
-        <a href="/admin/reportes" style="color: #ff5722; margin-left: 15px; font-weight: bold; text-decoration: none;">🛡️ Panel Admin</a>
+        <a href="/admin?retorno=/seleccion_nivel" style="color: #ff5722; margin-left: 15px; font-weight: bold; text-decoration: none;">🛡️ Panel Admin</a>
         {% endif %}
         <a href="/logout" style="color: #ff9800; margin-left: 15px; font-weight: bold; text-decoration: none;">Salir</a>
         {% else %}
@@ -201,6 +201,10 @@
             </a>
         </div>
     </main>
+
+    <footer style="text-align: center; padding: 20px; color: #777; font-size: 0.9em;">
+        ¿Tienes alguna idea para mejorar? <a href="/sugerencia" style="color: #003366; font-weight: bold; text-decoration: none;">Enviar Sugerencia 📬</a>
+    </footer>
 
 </body>
 </html>

@@ -162,6 +162,7 @@
             .lectura-col, .preguntas-col { max-height: none; }
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lightbox.css') }}">
 </head>
 <body>
 
@@ -184,9 +185,17 @@
             <span class="materia-badge">{{ p.materia }}</span>
             <p><strong>{{ loop.index }}. {{ p.texto_pregunta | safe }}</strong></p>            
             
+            {% if p.imagen_texto %}
+                <div style="text-align: center; margin: 15px 0;">
+                    <div style="font-size: 1.3em; font-weight: bold; color: #003366; background-color: #e9ecef; padding: 15px; border-radius: 8px; display: inline-block; letter-spacing: 2px;">
+                        {{ p.imagen_texto | safe }}
+                    </div>
+                </div>
+            {% endif %}
+            
             {% if p.imagen %}
                 <div style="text-align: center; margin: 15px 0;">
-                    {% if p.imagen.endswith('.png') or p.imagen.endswith('.jpg') or p.imagen.endswith('.jpeg') %}
+                    {% if p.imagen.endswith('.png') or p.imagen.endswith('.jpg') or p.imagen.endswith('.jpeg') or p.imagen.endswith('.webp') %}
                         <img src="{{ url_for('static', filename='img/' + p.imagen) }}" alt="Apoyo visual" style="max-width: 100%; border-radius: 5px;">
                     {% else %}
                         <div style="font-size: 1.3em; font-weight: bold; color: #003366; background-color: #e9ecef; padding: 15px; border-radius: 8px; display: inline-block; letter-spacing: 2px;">
@@ -237,7 +246,7 @@
         <input type="hidden" name="ayuda_vista_{{ p.id }}" id="ayuda-flag-{{ p.id }}" value="0">
 
             {% if p.procedimiento %}
-                <button type="button" class="btn-ayuda" onclick="mostrarAyuda({{ p.id }}, this)">💡 Ver Procedimiento de Ayuda</button>
+                <button type="button" class="btn-ayuda" onclick="mostrarAyuda({{ p.id }}, this)">💡 Ver Procedimiento de Ayuda (Si lo ves se te contara como mala la pregunta aunque la respondas bien)</button>
                 <div class="procedimiento" id="ayuda-{{ p.id }}">
                     <p>{{ p.procedimiento | safe }}</p>
                 </div>
@@ -249,7 +258,7 @@
                 </div>
             {% endif %}
 
-        </div>
+        </div> 
         {% endfor %}
 
         <!-- BLOQUES DE COMPETENCIA LECTORA (AL FINAL) -->
@@ -288,6 +297,14 @@
                 <div class="pregunta-lectura-card" id="card-L_{{ p.id }}">
                     <p><strong>{{ p.texto_pregunta | safe }}</strong></p>
                     
+                    {% if p.imagen_texto %}
+                    <div style="text-align: center; margin: 10px 0;">
+                        <div style="font-size: 1.2em; font-weight: bold; color: #003366; background-color: #e9ecef; padding: 10px; border-radius: 6px; display: inline-block;">
+                            {{ p.imagen_texto | safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+
                     {% if p.imagen %}
                     <div style="text-align: center; margin: 10px 0;">
                         <img src="{{ url_for('static', filename='img/' + p.imagen) }}" style="max-width: 100%; max-height: 150px;">
@@ -537,5 +554,6 @@
 
 </script>
 
+    <script src="{{ url_for('static', filename='js/lightbox.js') }}"></script>
 </body>
 </html>

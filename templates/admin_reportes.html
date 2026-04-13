@@ -194,11 +194,14 @@
 <body>
 
     <div class="container">
-        <a href="/seleccion_nivel" class="btn-back">← Volver al inicio</a>
+        <a href="/admin" class="btn-back">← Volver al Panel Admin</a>
 
         <div class="header-bar">
             <h1>🛡️ Panel de Administración — Reportes</h1>
-            <span class="badge-count">{{ reportes|length }} pendiente{{ 's' if reportes|length != 1 else '' }}</span>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="/admin/sugerencias" style="background: white; color: var(--primary-color); padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.9em;">📬 Buzón de Sugerencias</a>
+                <span class="badge-count">{{ reportes|length }} pendiente{{ 's' if reportes|length != 1 else '' }}</span>
+            </div>
         </div>
 
         {% if reportes %}
@@ -238,9 +241,15 @@
                         <strong>{{ p.texto_pregunta | safe }}</strong>
                     </div>
 
+                    {% if p.imagen_texto %}
+                    <div style="text-align:center; margin-bottom:10px;">
+                        <div style="background: #e9ecef; padding: 10px; display: inline-block; font-weight: bold; border-radius:4px;">{{ p.imagen_texto | safe }}</div>
+                    </div>
+                    {% endif %}
+
                     {% if p.imagen %}
                     <div style="text-align: center; margin-bottom: 15px;">
-                        {% if p.imagen.endswith('.png') or p.imagen.endswith('.jpg') %}
+                        {% if p.imagen.endswith('.png') or p.imagen.endswith('.jpg') or p.imagen.endswith('.webp') %}
                             <img src="{{ url_for('static', filename='img/' + p.imagen) }}" alt="Imagen" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
                         {% else %}
                             <div style="background: #e9ecef; padding: 10px; display: inline-block; font-weight: bold;">{{ p.imagen | safe }}</div>
@@ -273,6 +282,9 @@
 
                 <div class="reporte-acciones">
                     <a href="/pregunta/{{ p_id }}" target="_blank" class="btn-ver-pregunta">🔍 Ver Bloque Completo</a>
+                    {% if r.pregunta %}
+                    <a href="/admin/editar_pregunta/{{ p_id }}" class="btn-ver-pregunta" style="background-color: #ff9800; border-color: #ff9800;">🖍️ Editar Pregunta</a>
+                    {% endif %}
                     <button class="btn-resolver" onclick="resolverReporte({{ r.id }})">✅ Marcar como Resuelto</button>
                 </div>
             </div>

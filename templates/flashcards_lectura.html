@@ -40,6 +40,7 @@
             .lectura-col { max-height: 40%; }
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lightbox.css') }}">
 </head>
 <body>
 
@@ -130,5 +131,6 @@
             document.getElementById('btn-check').style.display = 'none';
         }
     </script>
+    <script src="{{ url_for('static', filename='js/lightbox.js') }}"></script>
 </body>
 </html>

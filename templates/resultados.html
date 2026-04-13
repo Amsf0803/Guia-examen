@@ -306,6 +306,7 @@
             background-color: #5a6268;
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lightbox.css') }}">
 </head>
 
 <body>
@@ -432,17 +433,22 @@
                 detalle.materia_limpia }}</span></p>
         <p><strong>{{ p.texto_pregunta | safe }}</strong></p>
 
+        {% if p.imagen_texto %}
+            <div style="font-size: 1.2em; font-weight: bold; color: #003366; background-color: #e9ecef; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
+                {{ p.imagen_texto | safe }}
+            </div>
+        {% endif %}
+
         {% if p.imagen %}
-        <div style="text-align: center; margin: 15px 0;">
-            {% if p.imagen.endswith('.png') or p.imagen.endswith('.jpg') %}
+            <div style="text-align: center; margin-top: 10px; margin-bottom: 15px;">
+            {% if p.imagen.endswith('.png') or p.imagen.endswith('.jpg') or p.imagen.endswith('.jpeg') or p.imagen.endswith('.webp') %}
             <img src="{{ url_for('static', filename='img/' + p.imagen) }}" alt="Apoyo visual"
-                style="max-width: 100%; border-radius: 5px;">
+                 style="max-width: 100%; border-radius: 5px;">
             {% else %}
-            <div
-                style="font-size: 1.2em; font-weight: bold; background-color: #e9ecef; padding: 15px; border-radius: 8px; display: inline-block;">
+            <div style="font-size: 1.2em; font-weight: bold; color: #003366; background-color: #e9ecef; padding: 15px; border-radius: 8px; display: inline-block;">
                 {{ p.imagen | safe }}</div>
             {% endif %}
-        </div>
+            </div>
         {% endif %}
 
         <div class="opciones-revision">
@@ -587,6 +593,7 @@
             }
         }
     </script>
+    <script src="{{ url_for('static', filename='js/lightbox.js') }}"></script>
 </body>
 
 </html>

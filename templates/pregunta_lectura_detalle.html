@@ -18,6 +18,7 @@
         .procedimiento { margin-top: 15px; padding: 15px; background-color: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px; font-size: 0.9em; }
         @media (max-width: 900px) { .container { grid-template-columns: 1fr; } .lectura-col, .preguntas-col { height: auto; } }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lightbox.css') }}">
 </head>
 <body>
 
@@ -82,5 +83,6 @@
         <a href="{{ url_for('dudas_menu') }}" class="btn-volver">Volver al Buscador / Dudas</a>
     </div>
 
+    <script src="{{ url_for('static', filename='js/lightbox.js') }}"></script>
 </body>
 </html>

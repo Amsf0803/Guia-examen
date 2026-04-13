@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{{ url_for('static', filename='img/LIA_Mini.png') }}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buzón de Sugerencias - Admin</title>
+    <style>
+        :root {
+            --primary: #003366;
+            --header: #001a33;
+            --bg: #f4f7f6;
+            --danger: #dc3545;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary), var(--header));
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0; font-size: 1.6em; }
+        .badge {
+            background: white;
+            color: var(--primary);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .suggestion-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            position: relative;
+            border-left: 5px solid var(--primary);
+            transition: 0.3s;
+        }
+        .sug-header {
+            display: flex;
+            justify-content: space-between;
+            color: #777;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .sug-text {
+            font-size: 1.1em;
+            line-height: 1.5;
+            color: #333;
+            white-space: pre-wrap;
+        }
+        .btn-delete {
+            background-color: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+            margin-top: 15px;
+        }
+        .btn-delete:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .user-tag {
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #555;
+            margin-right: 10px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/admin" class="back-link">← Volver al Panel Admin</a>
+        
+        <div class="header-bar">
+            <h1>📬 Buzón de Sugerencias</h1>
+            <span class="badge">{{ sugerencias|length }} sugerencias</span>
+        </div>
+
+        {% if sugerencias %}
+            {% for s in sugerencias %}
+            <div class="suggestion-card" id="sug-{{ s.id }}">
+                <div class="sug-header">
+                    <div>
+                        {% if s.usuario %}
+                        <span class="user-tag">👤 {{ s.usuario.username }}</span>
+                        {% else %}
+                        <span class="user-tag">👤 Anónimo</span>
+                        {% endif %}
+                        <span>📅 {{ s.fecha.strftime('%d/%m/%Y %H:%M') }}</span>
+                    </div>
+                </div>
+                <div class="sug-text">{{ s.texto }}</div>
+                <button class="btn-delete" onclick="eliminarSugerencia({{ s.id }})">Eliminar</button>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <h2>El buzón está vacío.</h2>
+                <p>Aún no hay sugerencias enviadas por los usuarios.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        async function eliminarSugerencia(id) {
+            if (!confirm('¿Estás seguro de eliminar esta sugerencia?')) return;
+
+            try {
+                const response = await fetch('/admin/eliminar_sugerencia/' + id, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    const card = document.getElementById('sug-' + id);
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    setTimeout(() => card.remove(), 300);
+                } else {
+                    alert('Error al eliminar.');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error de conexión.');
+            }
+        }
+    </script>
+</body>
+</html>

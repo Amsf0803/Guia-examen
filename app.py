@@ -8,6 +8,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import random
 import json
+import uuid
+import shutil
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave_secreta_super_segura_123')
@@ -46,12 +48,31 @@ class Pregunta(db.Model):
     materia = db.Column(db.String(50), nullable=False)
     texto_pregunta = db.Column(db.Text, nullable=False)
     imagen = db.Column(db.String(100), nullable=True) 
+    imagen_texto = db.Column(db.Text, nullable=True) 
     opcion_a = db.Column(db.String(200), nullable=False)
     opcion_b = db.Column(db.String(200), nullable=False)
     opcion_c = db.Column(db.String(200), nullable=False)
     opcion_d = db.Column(db.String(200), nullable=False)
     respuesta_correcta = db.Column(db.String(1), nullable=False)
     procedimiento = db.Column(db.Text, nullable=True)
+
+class PreguntaPendiente(db.Model):
+    __tablename__ = 'preguntas_pendientes'
+    id = db.Column(db.Integer, primary_key=True)
+    nivel = db.Column(db.String(50), nullable=False, default='Superior') 
+    materia = db.Column(db.String(50), nullable=False)
+    texto_pregunta = db.Column(db.Text, nullable=False)
+    imagen = db.Column(db.String(100), nullable=True)
+    imagen_texto = db.Column(db.Text, nullable=True) 
+    opcion_a = db.Column(db.String(200), nullable=False)
+    opcion_b = db.Column(db.String(200), nullable=False)
+    opcion_c = db.Column(db.String(200), nullable=False)
+    opcion_d = db.Column(db.String(200), nullable=False)
+    respuesta_correcta = db.Column(db.String(1), nullable=False)
+    procedimiento = db.Column(db.Text, nullable=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    fecha_envio = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 # ---> CORRECCIÓN ORDEN: Lectura y PreguntaLectura deben ir ANTES que Dudas y Reportes
 class Lectura(db.Model):
@@ -101,6 +122,14 @@ class ReportePregunta(db.Model):
     pregunta = db.relationship('Pregunta', backref=db.backref('reportes', lazy=True))
     pregunta_lectura = db.relationship('PreguntaLectura', backref=db.backref('reportes', lazy=True))
     usuario = db.relationship('Usuario', backref=db.backref('reportes', lazy=True))
+
+class Sugerencia(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    texto = db.Column(db.Text, nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True) # Opcional si está logueado
+    
+    usuario = db.relationship('Usuario', backref=db.backref('sugerencias', lazy=True))
 # <--- FIN CORRECCIÓN ORDEN
 
 
@@ -124,6 +153,10 @@ with app.app_context():
     except sqlite3.OperationalError: pass
 
     try: cursor.execute("ALTER TABLE preguntas_lectura ADD COLUMN procedimiento TEXT")
+    except sqlite3.OperationalError: pass
+    
+    # Intentar crear tabla sugerencia si no existe (por si db.create_all ya se corrió antes)
+    try: cursor.execute("CREATE TABLE sugerencia (id INTEGER PRIMARY KEY, texto TEXT NOT NULL, fecha DATETIME, usuario_id INTEGER REFERENCES usuario(id))")
     except sqlite3.OperationalError: pass
     
     # ¡SOLO SE GUARDA Y CIERRA UNA VEZ AL FINAL!
@@ -370,7 +403,7 @@ def seleccion_nivel():
 
 @app.route('/menu_superior')
 def menu_superior():
-    lista_materias = ["Matemáticas", "Física", "Química", "Competencia Escrita", "Competencia Lectora", "Historia y entorno socioeconómico de México", "Inglés"]
+    lista_materias = ["Matemáticas", "Física", "Química", "Biología", "Competencia Escrita", "Competencia Lectora", "Historia y entorno socioeconómico de México", "Inglés"]
     link_apoyo = "https://www.ipn.mx/des/" 
     return render_template('index.html', materias=lista_materias, nivel="Superior", link_material=link_apoyo, url_retorno="/menu_superior")
 
@@ -431,25 +464,45 @@ def sanitizar_html(texto):
     texto = re.sub(r'\s+on\w+\s*=\s*\S+', '', texto, flags=re.IGNORECASE)
     return texto
 
+def procesar_archivo_temporal(file_obj):
+    if file_obj and file_obj.filename:
+        ext = file_obj.filename.split('.')[-1].lower()
+        if ext in ['png', 'jpg', 'jpeg', 'webp']:
+            nombre_temp = f"pendientes/temp_{uuid.uuid4().hex}.{ext}"
+            ruta = os.path.join(app.root_path, 'static', 'img', nombre_temp)
+            file_obj.save(ruta)
+            return nombre_temp
+    return None
+
 @app.route('/agregar_pregunta', methods=['GET', 'POST'])
 @app.route('/agregar_pregunta/<nivel>', methods=['GET', 'POST'])
 @login_required
 def agregar_pregunta(nivel="Superior"):
     if request.method == 'POST':
-        nueva_pregunta = Pregunta(
+        imagen_val = procesar_archivo_temporal(request.files.get('imagen_file'))
+        
+        op_a_val = procesar_archivo_temporal(request.files.get('opcion_a_file')) or sanitizar_html(request.form.get('opcion_a', ''))
+        op_b_val = procesar_archivo_temporal(request.files.get('opcion_b_file')) or sanitizar_html(request.form.get('opcion_b', ''))
+        op_c_val = procesar_archivo_temporal(request.files.get('opcion_c_file')) or sanitizar_html(request.form.get('opcion_c', ''))
+        op_d_val = procesar_archivo_temporal(request.files.get('opcion_d_file')) or sanitizar_html(request.form.get('opcion_d', ''))
+
+        nueva_pregunta = PreguntaPendiente(
             nivel=request.form.get('nivel'), 
             materia=request.form.get('materia'),
             texto_pregunta=sanitizar_html(request.form.get('texto_pregunta')),
-            opcion_a=sanitizar_html(request.form.get('opcion_a')),
-            opcion_b=sanitizar_html(request.form.get('opcion_b')),
-            opcion_c=sanitizar_html(request.form.get('opcion_c')),
-            opcion_d=sanitizar_html(request.form.get('opcion_d')),
+            imagen_texto=sanitizar_html(request.form.get('imagen_texto')),
+            imagen=imagen_val,
+            opcion_a=op_a_val,
+            opcion_b=op_b_val,
+            opcion_c=op_c_val,
+            opcion_d=op_d_val,
             respuesta_correcta=request.form.get('respuesta_correcta'),
-            procedimiento=sanitizar_html(request.form.get('procedimiento'))
+            procedimiento=sanitizar_html(request.form.get('procedimiento')),
+            usuario_id=current_user.id
         )
         db.session.add(nueva_pregunta)
         db.session.commit()
-        flash('¡Pregunta guardada exitosamente!', 'success')
+        flash('¡Gracias por contribuir! Tu pregunta ha sido enviada.', 'success')
         return redirect(url_for('agregar_pregunta', nivel=request.form.get('nivel'))) 
     
     url_retorno = url_for('menu_superior') if nivel == "Superior" else url_for('menu_medio_superior')
@@ -745,6 +798,44 @@ def reportar_pregunta():
     db.session.commit()
     return {"status": "success"}, 200
 
+@app.route('/sugerencia')
+def sugerencia_page():
+    return render_template('sugerencia.html')
+
+@app.route('/enviar_sugerencia', methods=['POST'])
+def enviar_sugerencia():
+    texto = request.form.get('texto', '').strip()
+    if not texto:
+        flash("Por favor, escribe algo antes de enviar.", "error")
+        return redirect(url_for('sugerencia_page'))
+    
+    usuario_id = current_user.id if current_user.is_authenticated else None
+    nueva_sugerencia = Sugerencia(texto=texto, usuario_id=usuario_id)
+    db.session.add(nueva_sugerencia)
+    db.session.commit()
+    
+    flash("¡Gracias! Tu sugerencia ha sido enviada al buzón.", "success")
+    return redirect(url_for('seleccion_nivel'))
+
+@app.route('/admin/sugerencias')
+@login_required
+@admin_required
+def admin_sugerencias():
+    sugerencias = Sugerencia.query.order_by(Sugerencia.fecha.desc()).all()
+    return render_template('admin_sugerencias.html', sugerencias=sugerencias)
+
+@app.route('/admin/eliminar_sugerencia/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_sugerencia(id):
+    sug = db.session.get(Sugerencia, id)
+    if sug:
+        db.session.delete(sug)
+        db.session.commit()
+        return {"status": "success"}, 200
+    return {"error": "Sugerencia no encontrada"}, 404
+
+
 @app.route('/admin/reportes')
 @login_required
 @admin_required
@@ -762,6 +853,284 @@ def resolver_reporte(id):
         db.session.commit()
         return {"status": "success"}, 200
     return {"error": "Reporte no encontrado"}, 404
+
+@app.route('/admin/preguntas_pendientes')
+@login_required
+@admin_required
+def admin_preguntas_pendientes():
+    pendientes = PreguntaPendiente.query.order_by(PreguntaPendiente.fecha_envio.desc()).all()
+    next_pa_n = obtener_siguiente_numero_img()
+    max_pregunta_id = db.session.query(db.func.max(Pregunta.id)).scalar()
+    next_pregunta_id = (max_pregunta_id or 0) + 1
+    return render_template('admin_preguntas_pendientes.html', 
+                           pendientes=pendientes, 
+                           next_pa_n=next_pa_n, 
+                           next_pregunta_id=next_pregunta_id)
+
+def obtener_siguiente_numero_img():
+    """Escanea static/img/ buscando archivos p{N}, a{N}, b{N}, c{N}, d{N} y retorna max(N)+1."""
+    path = os.path.join(app.root_path, 'static', 'img')
+    archivos = os.listdir(path)
+    max_n = 0
+    pattern = re.compile(r'^[pabcd](\d+)\.(?:png|jpg|jpeg|webp)$', re.IGNORECASE)
+    for f in archivos:
+        match = pattern.match(f)
+        if match:
+            n = int(match.group(1))
+            if n > max_n:
+                max_n = n
+    return max_n + 1
+
+def mover_imagen_aprobada(val, prefix_type, next_n):
+    """Mueve archivo de pendientes/ a static/img/ con nombre p{N} o a{N}/b{N}/c{N}/d{N}."""
+    if not val: return val
+    clean_val = val.replace('<p>', '').replace('</p>', '').replace('<br>', '').strip()
+    if clean_val.startswith('pendientes/'):
+        ext = clean_val.split('.')[-1]
+        # prefix_type es '' para pregunta, 'a','b','c','d' para opciones
+        prefix = prefix_type if prefix_type else 'p'
+        new_name = f"{prefix}{next_n}.{ext}"
+        src = os.path.join(app.root_path, 'static', 'img', clean_val)
+        dst = os.path.join(app.root_path, 'static', 'img', new_name)
+        if os.path.exists(src):
+            shutil.move(src, dst)
+            return new_name
+    return val
+
+def borrar_imagen_disco(val):
+    """Borra un archivo de imagen del disco (sea temporal o de producción)."""
+    if not val: return
+    clean_val = val.replace('<p>', '').replace('</p>', '').replace('<br>', '').strip()
+    # Borrar de pendientes
+    if clean_val.startswith('pendientes/'):
+        src = os.path.join(app.root_path, 'static', 'img', clean_val)
+    else:
+        # Es una imagen de producción (p5.png, a3.png, etc.)
+        src = os.path.join(app.root_path, 'static', 'img', clean_val)
+    if os.path.exists(src):
+        os.remove(src)
+
+@app.route('/admin/preguntas_pendientes/<int:id>/accion', methods=['POST'])
+@login_required
+@admin_required
+def accion_pregunta_pendiente(id):
+    pendiente = db.session.get(PreguntaPendiente, id)
+    if not pendiente:
+        return {"error": "Pregunta no encontrada"}, 404
+
+    accion = request.form.get('accion')
+
+    if accion == 'aprobar':
+        next_n = obtener_siguiente_numero_img()
+        
+        def gestionar_aprobacion(viejo_val, form_val, prefix):
+            # Check if form_val still contains the pendiente path
+            clean_form = form_val.replace('<p>', '').replace('</p>', '').replace('<br>', '').strip() if form_val else ''
+            
+            # If the original was an image but the admin discarded it (e.g. typed text instead)
+            if viejo_val and viejo_val.startswith('pendientes/') and clean_form != viejo_val:
+                borrar_imagen_disco(viejo_val)
+                
+            return mover_imagen_aprobada(form_val, prefix, next_n)
+
+        final_img = gestionar_aprobacion(pendiente.imagen, request.form.get('imagen', pendiente.imagen), '')
+        final_a = gestionar_aprobacion(pendiente.opcion_a, request.form.get('opcion_a', pendiente.opcion_a), 'a')
+        final_b = gestionar_aprobacion(pendiente.opcion_b, request.form.get('opcion_b', pendiente.opcion_b), 'b')
+        final_c = gestionar_aprobacion(pendiente.opcion_c, request.form.get('opcion_c', pendiente.opcion_c), 'c')
+        final_d = gestionar_aprobacion(pendiente.opcion_d, request.form.get('opcion_d', pendiente.opcion_d), 'd')
+
+        nueva_pregunta = Pregunta(
+            nivel=request.form.get('nivel', pendiente.nivel),
+            materia=request.form.get('materia', pendiente.materia),
+            texto_pregunta=sanitizar_html(request.form.get('texto_pregunta')),
+            imagen_texto=sanitizar_html(request.form.get('imagen_texto')),
+            imagen=final_img,
+            opcion_a=sanitizar_html(final_a),
+            opcion_b=sanitizar_html(final_b),
+            opcion_c=sanitizar_html(final_c),
+            opcion_d=sanitizar_html(final_d),
+            respuesta_correcta=request.form.get('respuesta_correcta', pendiente.respuesta_correcta),
+            procedimiento=sanitizar_html(request.form.get('procedimiento'))
+        )
+        db.session.add(nueva_pregunta)
+        db.session.delete(pendiente)
+        db.session.commit()
+        flash('Pregunta aprobada y guardada en el banco oficial.', 'success')
+        return redirect(url_for('admin_preguntas_pendientes'))
+
+    elif accion == 'rechazar':
+        borrar_imagen_disco(pendiente.imagen)
+        borrar_imagen_disco(pendiente.opcion_a)
+        borrar_imagen_disco(pendiente.opcion_b)
+        borrar_imagen_disco(pendiente.opcion_c)
+        borrar_imagen_disco(pendiente.opcion_d)
+        
+        db.session.delete(pendiente)
+        db.session.commit()
+        flash('Pregunta rechazada y eliminada.', 'success')
+        return redirect(url_for('admin_preguntas_pendientes'))
+
+    return abort(400)
+
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_hub():
+    retorno = request.args.get('retorno', '/seleccion_nivel')
+    return render_template('admin_hub.html', retorno=retorno)
+
+@app.route('/admin/preguntas_oficiales')
+@login_required
+@admin_required
+def admin_preguntas_oficiales():
+    materia_filter = request.args.get('materia')
+    orden = request.args.get('orden', 'desc')  # 'asc' o 'desc'
+    search_id = request.args.get('search_id', '').strip()
+    
+    query = Pregunta.query
+    
+    # Filtro por materia
+    if materia_filter:
+        query = query.filter_by(materia=materia_filter)
+    
+    # Búsqueda por ID
+    if search_id:
+        try:
+            query = query.filter(Pregunta.id == int(search_id))
+        except ValueError:
+            pass
+    
+    # Orden
+    if orden == 'asc':
+        query = query.order_by(Pregunta.id.asc())
+    else:
+        query = query.order_by(Pregunta.id.desc())
+    
+    if not search_id and not materia_filter:
+        preguntas = query.limit(200).all()
+    else:
+        preguntas = query.all()
+    
+    materias_db = db.session.query(Pregunta.materia).distinct().all()
+    materias = [m[0] for m in materias_db]
+    
+    return render_template('admin_preguntas_oficiales.html', 
+                           preguntas=preguntas, materias=materias, 
+                           materia_filtro=materia_filter, orden=orden, search_id=search_id)
+
+@app.route('/admin/eliminar_pregunta/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_pregunta_oficial(id):
+    pregunta = db.session.get(Pregunta, id)
+    if pregunta:
+        db.session.delete(pregunta)
+        db.session.commit()
+        return {"status": "success", "message": "Pregunta eliminada"}, 200
+    return {"status": "error", "message": "No se encontró la pregunta"}, 404
+
+@app.route('/admin/editar_pregunta/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_editar_pregunta(id):
+    pregunta = db.session.get(Pregunta, id)
+    if not pregunta:
+        flash('Pregunta no encontrada.', 'danger')
+        return redirect(url_for('admin_preguntas_oficiales'))
+
+    if request.method == 'GET':
+        return render_template('admin_editar_pregunta.html', p=pregunta)
+
+    # --- POST: Procesar la edición ---
+    EXTENSIONES = {'png', 'jpg', 'jpeg', 'webp'}
+    img_dir = os.path.join(app.root_path, 'static', 'img')
+
+    def es_imagen(nombre):
+        if not nombre: return False
+        return nombre.lower().rsplit('.', 1)[-1] in EXTENSIONES
+
+    def procesar_campo_imagen(campo_file, campo_text, valor_actual, prefijo):
+        """
+        Maneja la lógica de imagen para un campo específico.
+        - campo_file: nombre del input file en el formulario
+        - campo_text: valor de texto del formulario
+        - valor_actual: valor actual en la BD
+        - prefijo: 'p' para pregunta, 'a','b','c','d' para opciones
+        Retorna el nuevo valor para guardar en la BD.
+        """
+        archivo = request.files.get(campo_file)
+
+        if archivo and archivo.filename:
+            # Se subió un archivo nuevo
+            ext = archivo.filename.rsplit('.', 1)[-1].lower()
+            if ext not in EXTENSIONES:
+                return valor_actual  # Extensión no válida, ignorar
+
+            if es_imagen(valor_actual):
+                # REEMPLAZAR: borrar la vieja y guardar con el MISMO nombre
+                viejo_path = os.path.join(img_dir, valor_actual)
+                if os.path.exists(viejo_path):
+                    os.remove(viejo_path)
+                nuevo_nombre = valor_actual.rsplit('.', 1)[0] + '.' + ext
+                archivo.save(os.path.join(img_dir, nuevo_nombre))
+                return nuevo_nombre
+            else:
+                # NUEVA IMAGEN: calcular siguiente N secuencial
+                next_n = obtener_siguiente_numero_img()
+                nuevo_nombre = f"{prefijo}{next_n}.{ext}"
+                archivo.save(os.path.join(img_dir, nuevo_nombre))
+                return nuevo_nombre
+        else:
+            # No se subió archivo, usar el texto del formulario
+            nuevo_texto = campo_text
+            if nuevo_texto is not None:
+                nuevo_texto = nuevo_texto.strip()
+                # Si el admin borró el campo y el viejo era imagen, borrar del disco
+                if not nuevo_texto and es_imagen(valor_actual):
+                    borrar_imagen_disco(valor_actual)
+                    return None
+                # Si el admin cambió de imagen a texto, borrar la imagen vieja
+                if nuevo_texto and es_imagen(valor_actual) and not es_imagen(nuevo_texto):
+                    borrar_imagen_disco(valor_actual)
+                return nuevo_texto if nuevo_texto else valor_actual
+            return valor_actual
+
+    # Procesar cada campo
+    pregunta.nivel = request.form.get('nivel', pregunta.nivel)
+    pregunta.materia = request.form.get('materia', pregunta.materia)
+    pregunta.texto_pregunta = sanitizar_html(request.form.get('texto_pregunta', pregunta.texto_pregunta))
+    pregunta.imagen_texto = sanitizar_html(request.form.get('imagen_texto', pregunta.imagen_texto or ''))
+    pregunta.respuesta_correcta = request.form.get('respuesta_correcta', pregunta.respuesta_correcta)
+    pregunta.procedimiento = sanitizar_html(request.form.get('procedimiento', pregunta.procedimiento or ''))
+
+    # Imagen principal de la pregunta
+    pregunta.imagen = procesar_campo_imagen(
+        'imagen_file', request.form.get('imagen', pregunta.imagen or ''),
+        pregunta.imagen, 'p'
+    )
+
+    # Opciones A, B, C, D
+    pregunta.opcion_a = sanitizar_html(procesar_campo_imagen(
+        'opcion_a_file', request.form.get('opcion_a', pregunta.opcion_a),
+        pregunta.opcion_a, 'a'
+    ))
+    pregunta.opcion_b = sanitizar_html(procesar_campo_imagen(
+        'opcion_b_file', request.form.get('opcion_b', pregunta.opcion_b),
+        pregunta.opcion_b, 'b'
+    ))
+    pregunta.opcion_c = sanitizar_html(procesar_campo_imagen(
+        'opcion_c_file', request.form.get('opcion_c', pregunta.opcion_c),
+        pregunta.opcion_c, 'c'
+    ))
+    pregunta.opcion_d = sanitizar_html(procesar_campo_imagen(
+        'opcion_d_file', request.form.get('opcion_d', pregunta.opcion_d),
+        pregunta.opcion_d, 'd'
+    ))
+
+    db.session.commit()
+    flash(f'Pregunta #{id} actualizada exitosamente.', 'success')
+    return redirect(url_for('admin_editar_pregunta', id=id, **request.args))
+
 
 # --- PÁGINA 404 ---
 @app.errorhandler(404)

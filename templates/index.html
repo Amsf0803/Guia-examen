@@ -143,7 +143,7 @@
         <a href="/dashboard?retorno={{ url_retorno }}" style="color: white; margin-left: 15px; font-weight: bold; text-decoration: none;">📊 Mi
             Progreso</a>
         {% if current_user.is_admin %}
-        <a href="/admin/reportes" style="color: #ff5722; margin-left: 15px; font-weight: bold; text-decoration: none;">🛡️ Panel Admin</a>
+        <a href="/admin?retorno={{ url_retorno }}" style="color: #ff5722; margin-left: 15px; font-weight: bold; text-decoration: none;">🛡️ Panel Admin</a>
         {% endif %}
         <a href="/logout" style="color: #ff9800; margin-left: 15px; font-weight: bold; text-decoration: none;">Salir</a>
         {% else %}
@@ -314,6 +314,14 @@
     </div>
 
     <div style="text-align: center; margin-top: 50px; margin-bottom: 30px;">
+        <a href="/sugerencia"
+            style="display: inline-block; background-color: #17a2b8; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
+            onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            📬 Buzón de Sugerencias
+        </a>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px; margin-bottom: 30px;">
         <a href="/seleccion_nivel"
             style="display: inline-block; background-color: #003366; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background-color 0.3s, transform 0.2s;"
             onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">

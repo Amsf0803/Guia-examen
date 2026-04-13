@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{{ url_for('static', filename='img/LIA_Mini.png') }}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Banco de Preguntas Oficiales</title>
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #003366;
+            --hover-color: #00509e;
+            --bg-color: #f4f7f6;
+            --danger: #dc3545;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 30px 20px;
+        }
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary-color), #001a33);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,51,102,0.3);
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .header-bar h1 { margin: 0; font-size: 1.5em; }
+        .btn-back {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        .btn-back:hover { background-color: var(--hover-color); }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+        .pregunta-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 6px solid var(--primary-color);
+            transition: 0.3s;
+        }
+        .materia-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .btn-delete {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            float: right;
+            transition: 0.3s;
+        }
+        .btn-delete:hover { background-color: #c82333; }
+        
+        .filters {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        select { padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 1em; }
+        .btn-edit {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            float: right;
+            margin-right: 10px;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: 0.3s;
+        }
+        .btn-edit:hover { background-color: #e68900; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="/admin" class="btn-back">⬅️ Volver al Panel Admin</a>
+
+    <div class="header-bar">
+        <h1>📚 Gestor del Banco de Preguntas</h1>
+        <span style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px;">Viendo <strong>{{ preguntas|length }}</strong> preguntas</span>
+    </div>
+
+    <div class="filters" style="flex-wrap: wrap;">
+        <form action="/admin/preguntas_oficiales" method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; width: 100%;">
+            <label style="font-weight: bold;">Materia:</label>
+            <select name="materia">
+                <option value="">-- TODAS --</option>
+                {% for m in materias %}
+                    <option value="{{ m }}" {% if m == materia_filtro %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+            </select>
+            
+            <label style="font-weight: bold; margin-left: 10px;">Orden ID:</label>
+            <select name="orden">
+                <option value="desc" {% if orden == 'desc' %}selected{% endif %}>Mayor a Menor</option>
+                <option value="asc" {% if orden == 'asc' %}selected{% endif %}>Menor a Mayor</option>
+            </select>
+            
+            <label style="font-weight: bold; margin-left: 10px;">Buscar ID:</label>
+            <input type="text" name="search_id" value="{{ search_id or '' }}" placeholder="Ej: 500" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 80px;">
+            
+            <button type="submit" style="background: var(--primary-color); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">🔍 Filtrar</button>
+            <a href="/admin/preguntas_oficiales" style="padding: 8px 15px; color: #666; text-decoration: none; font-size: 0.9em;">❌ Limpiar</a>
+        </form>
+    </div>
+
+    {% if preguntas %}
+        {% for p in preguntas %}
+        <div class="pregunta-card" id="card-{{ p.id }}">
+            <button class="btn-delete" onclick="eliminarPregunta({{ p.id }})">🗑️ Eliminar</button>
+            <a href="/admin/editar_pregunta/{{ p.id }}?materia={{ materia_filtro or '' }}&orden={{ orden }}" class="btn-edit">🖍️ Editar</a>
+            <span class="materia-badge">{{ p.materia }}</span>
+            <span style="color: #666; font-size: 0.9em; margin-left: 10px;">ID Global: <strong>{{ p.id }}</strong></span>
+            
+            <p style="font-size: 1.1em; margin-top: 15px;"><strong>{{ p.texto_pregunta | safe }}</strong></p>
+            
+            {% if p.imagen_texto %}
+                <div style="font-size: 1.1em; font-weight: bold; background-color: #e9ecef; padding: 10px; border-radius: 6px; display: inline-block; margin-bottom: 10px;">
+                    {{ p.imagen_texto | safe }}
+                </div><br>
+            {% endif %}
+            
+            {% if p.imagen %}
+                <div style="margin-bottom: 15px;">
+                    {% if p.imagen.endswith('.png') or p.imagen.endswith('.jpg') or p.imagen.endswith('.webp') %}
+                        <img src="{{ url_for('static', filename='img/' + p.imagen) }}" style="max-height: 100px; border-radius: 5px;">
+                    {% else %}
+                        <div style="background: #e9ecef; padding: 10px; display: inline-block; font-weight: bold;">{{ p.imagen | safe }}</div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align: center; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <h2 style="color: #666;">No hay preguntas oficiales que mostrar.</h2>
+        </div>
+    {% endif %}
+
+</div>
+
+<script>
+    async function eliminarPregunta(id) {
+        if(confirm(`⚠️ ¿Estás completamente seguro de ELIMINAR la pregunta #${id} de la Base de Datos oficial? Esta acción NO se puede deshacer.`)) {
+            try {
+                const response = await fetch('/admin/eliminar_pregunta/' + id, {
+                    method: 'POST'
+                });
+                if(response.ok) {
+                    const card = document.getElementById('card-' + id);
+                    card.style.opacity = '0';
+                    setTimeout(() => card.remove(), 300);
+                } else {
+                    alert('Error al intentar eliminar la pregunta.');
+                }
+            } catch(e) {
+                alert('No se pudo conectar con el servidor.');
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
