@@ -298,8 +298,6 @@ def flashcards(nivel="Superior"):
         return render_template('flashcards_lectura.html', lectura=lectura, nivel=nivel, area=area)
         
     return render_template('flashcards.html', pregunta=pregunta, nivel=nivel, area=area, materia_limpia=materia_limpia)
-        
-    return render_template('flashcards.html', pregunta=pregunta, nivel=nivel, area=area, materia_limpia=materia_limpia)
 
 @app.route('/pregunta/<id>') # Quitamos el <int:id> porque ahora aceptamos L_
 def pregunta_individual(id):
