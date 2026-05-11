@@ -13,7 +13,7 @@ import shutil
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave_secreta_super_segura_123')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///simulador.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/08amsf/Guia-examen/instance/simulador.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
