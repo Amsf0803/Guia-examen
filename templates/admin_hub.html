@@ -67,6 +67,8 @@
         .admin-card.gestor h3 { color: #28a745; }
         .admin-card.sugerencias { border-top-color: #17a2b8; }
         .admin-card.sugerencias h3 { color: #17a2b8; }
+        .admin-card.procedimientos { border-top-color: #6f42c1; }
+        .admin-card.procedimientos h3 { color: #6f42c1; }
         @media (max-width: 600px) {
             .grid { grid-template-columns: 1fr; }
         }
@@ -99,6 +101,12 @@
             <div class="icon">📚</div>
             <h3>Gestor de Base de Datos</h3>
             <p>Editar, eliminar y administrar preguntas oficiales</p>
+        </a>
+
+        <a href="/admin/procedimientos_pendientes" class="admin-card procedimientos">
+            <div class="icon">📝</div>
+            <h3>Procedimientos Pendientes</h3>
+            <p>Revisar y aprobar procedimientos enviados por los usuarios</p>
         </a>
 
         <a href="/admin/sugerencias" class="admin-card sugerencias">

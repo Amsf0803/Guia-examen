@@ -124,6 +124,18 @@ class ReportePregunta(db.Model):
     pregunta_lectura = db.relationship('PreguntaLectura', backref=db.backref('reportes', lazy=True))
     usuario = db.relationship('Usuario', backref=db.backref('reportes', lazy=True))
 
+class ProcedimientoPendiente(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    pregunta_id = db.Column(db.Integer, db.ForeignKey('pregunta.id'), nullable=True) 
+    pregunta_lectura_id = db.Column(db.Integer, db.ForeignKey('preguntas_lectura.id'), nullable=True) 
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    procedimiento = db.Column(db.Text, nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    pregunta = db.relationship('Pregunta', backref=db.backref('procedimientos_pendientes', lazy=True))
+    pregunta_lectura = db.relationship('PreguntaLectura', backref=db.backref('procedimientos_pendientes', lazy=True))
+    usuario = db.relationship('Usuario', backref=db.backref('procedimientos_pendientes', lazy=True))
+
 class Sugerencia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.Text, nullable=False)
@@ -776,17 +788,20 @@ def guardar_procedimiento():
     pregunta_id_raw = data.get('id')
     nuevo_procedimiento = data.get('procedimiento')
 
+    if not nuevo_procedimiento:
+        return {"status": "error", "message": "Procedimiento vacío"}, 400
+
+    usuario_id = current_user.id if current_user.is_authenticated else None
+
     if str(pregunta_id_raw).startswith('L_'):
         real_id = int(str(pregunta_id_raw).replace('L_', ''))
-        pregunta = db.session.get(PreguntaLectura, real_id)
+        pendiente = ProcedimientoPendiente(pregunta_lectura_id=real_id, procedimiento=nuevo_procedimiento, usuario_id=usuario_id)
     else:
-        pregunta = db.session.get(Pregunta, int(pregunta_id_raw))
+        pendiente = ProcedimientoPendiente(pregunta_id=int(pregunta_id_raw), procedimiento=nuevo_procedimiento, usuario_id=usuario_id)
 
-    if pregunta:
-        pregunta.procedimiento = nuevo_procedimiento
-        db.session.commit()
-        return {"status": "success"}, 200
-    return {"status": "error"}, 400
+    db.session.add(pendiente)
+    db.session.commit()
+    return {"status": "success"}, 200
 
 
 # --- RUTAS DE REPORTES ---
@@ -982,6 +997,43 @@ def accion_pregunta_pendiente(id):
         db.session.commit()
         flash('Pregunta rechazada y eliminada.', 'success')
         return redirect(url_for('admin_preguntas_pendientes'))
+
+    return abort(400)
+
+@app.route('/admin/procedimientos_pendientes')
+@login_required
+@admin_required
+def admin_procedimientos_pendientes():
+    pendientes = ProcedimientoPendiente.query.order_by(ProcedimientoPendiente.fecha.desc()).all()
+    return render_template('admin_procedimientos_pendientes.html', pendientes=pendientes)
+
+@app.route('/admin/procedimientos_pendientes/<int:id>/accion', methods=['POST'])
+@login_required
+@admin_required
+def accion_procedimiento_pendiente(id):
+    pendiente = db.session.get(ProcedimientoPendiente, id)
+    if not pendiente:
+        return {"error": "Procedimiento pendiente no encontrado"}, 404
+
+    accion = request.form.get('accion')
+
+    if accion == 'aprobar':
+        nuevo_texto = request.form.get('procedimiento', pendiente.procedimiento)
+        if pendiente.pregunta:
+            pendiente.pregunta.procedimiento = sanitizar_html(nuevo_texto)
+        elif pendiente.pregunta_lectura:
+            pendiente.pregunta_lectura.procedimiento = sanitizar_html(nuevo_texto)
+        
+        db.session.delete(pendiente)
+        db.session.commit()
+        flash('Procedimiento aprobado y guardado en la pregunta oficial.', 'success')
+        return redirect(url_for('admin_procedimientos_pendientes'))
+
+    elif accion == 'rechazar':
+        db.session.delete(pendiente)
+        db.session.commit()
+        flash('Procedimiento rechazado.', 'success')
+        return redirect(url_for('admin_procedimientos_pendientes'))
 
     return abort(400)
 

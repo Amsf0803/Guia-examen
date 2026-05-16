@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{{ url_for('static', filename='img/LIA_Mini.png') }}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Procedimientos Pendientes</title>
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #003366;
+            --hover-color: #00509e;
+            --bg-color: #f4f7f6;
+            --danger: #dc3545;
+            --success: #28a745;
+            --warning: #ff9800;
+            --purple: #6f42c1;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 30px 20px;
+        }
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary-color), #001a33);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,51,102,0.3);
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .header-bar h1 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        .header-bar .badge-count {
+            background-color: var(--purple);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .btn-back {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            transition: 0.2s;
+            max-width: 1000px;
+        }
+        .btn-back:hover { background-color: var(--hover-color); }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .reporte-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border-left: 6px solid var(--purple);
+        }
+        .reporte-header {
+            background: linear-gradient(to right, #f3e5f5, #ffffff);
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .reporte-header .info-badges span {
+            display: inline-block;
+            background-color: #e9ecef;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            color: #555;
+            margin-right: 8px;
+        }
+        
+        .pregunta-preview {
+            padding: 20px 25px;
+        }
+        .pregunta-preview .question-text {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .form-procedimiento {
+            padding: 15px 25px;
+            background-color: #fcfcfc;
+            border-top: 1px solid #eee;
+        }
+
+        .form-procedimiento textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-family: monospace;
+            font-size: 1.1em;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        .reporte-acciones {
+            padding: 15px 25px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-aprobar {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-aprobar:hover { background-color: #218838; }
+        
+        .btn-rechazar {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-rechazar:hover { background-color: #c82333; }
+
+        .proc-actual {
+            background-color: #e2e3e5;
+            padding: 15px;
+            border-left: 4px solid #6c757d;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        }
+        .empty-state .icon { font-size: 4em; margin-bottom: 15px; }
+        .empty-state h2 { color: var(--success); margin-bottom: 10px; }
+        .empty-state p { color: #777; font-size: 1.1em; }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="/admin" class="btn-back">← Volver al Panel Admin</a>
+
+        <div class="header-bar">
+            <h1>🛡️ Panel de Administración — Procedimientos Pendientes</h1>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="badge-count">{{ pendientes|length }} pendiente{{ 's' if pendientes|length != 1 else '' }}</span>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if pendientes %}
+            {% for pend in pendientes %}
+            <div class="reporte-card" id="pendiente-{{ pend.id }}">
+                <div class="reporte-header">
+                    <div class="info-badges">
+                        {% set p = pend.pregunta if pend.pregunta else pend.pregunta_lectura %}
+                        {% set p_id = p.id if pend.pregunta else ('L_' ~ p.id) %}
+                        <span>📝 Procedimiento #{{ pend.id }}</span>
+                        <span>🔖 Pregunta ID: {{ p_id }}</span>
+                        <span>📚 {% if pend.pregunta_lectura %}Comp. Lectora{% else %}{{ p.materia }}{% endif %}</span>
+                        <span>📅 {{ pend.fecha.strftime('%d/%m/%Y %H:%M') }}</span>
+                        {% if pend.usuario %}
+                        <span>👤 {{ pend.usuario.username }}</span>
+                        {% else %}
+                        <span>👤 Anónimo</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="pregunta-preview">
+                    {% if pend.pregunta_lectura %}
+                        <div style="background: #f1f3f5; padding: 10px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid #003366;">
+                            <strong>Lectura: {{ p.lectura.titulo }}</strong>
+                        </div>
+                    {% endif %}
+                    
+                    <h4 style="color: var(--primary-color); margin-top: 0;">Pregunta a la que corresponde:</h4>
+                    <div class="question-text">
+                        <strong>{{ p.texto_pregunta | safe }}</strong>
+                    </div>
+
+                    {% if p.procedimiento %}
+                    <div class="proc-actual">
+                        <strong style="color: #6c757d;">⚠️ Esta pregunta YA tiene un procedimiento guardado:</strong><br><br>
+                        {{ p.procedimiento | safe }}
+                    </div>
+                    <p style="color: var(--danger); font-size: 0.9em;"><em>Nota: Si apruebas este nuevo procedimiento, sobrescribirá al actual.</em></p>
+                    {% else %}
+                    <p style="color: var(--success); font-size: 0.9em; font-weight: bold;"><em>Esta pregunta aún no tiene procedimiento.</em></p>
+                    {% endif %}
+                </div>
+
+                <form action="/admin/procedimientos_pendientes/{{ pend.id }}/accion" method="POST">
+                    <div class="form-procedimiento">
+                        <h4>Procedimiento propuesto (puedes editarlo):</h4>
+                        <textarea name="procedimiento" required>{{ pend.procedimiento }}</textarea>
+                    </div>
+
+                    <div class="reporte-acciones">
+                        <button type="submit" name="accion" value="rechazar" class="btn-rechazar" onclick="return confirm('¿Seguro que quieres rechazar y descartar este procedimiento?')">❌ Rechazar</button>
+                        <button type="submit" name="accion" value="aprobar" class="btn-aprobar" onclick="return confirm('¿Aprobar y guardar este procedimiento en la base de datos oficial?')">✅ Aprobar</button>
+                    </div>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="icon">✅</div>
+                <h2>¡Todo al día!</h2>
+                <p>No hay procedimientos propuestos pendientes de revisión.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>
