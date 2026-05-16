@@ -13,7 +13,8 @@ import shutil
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave_secreta_super_segura_123')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/08amsf/Guia-examen/instance/simulador.db'
+base_dir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(base_dir, 'instance', 'simulador.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -137,7 +138,8 @@ class Sugerencia(db.Model):
 with app.app_context():
     db.create_all()
     import sqlite3
-    conn = sqlite3.connect('instance/simulador.db')
+    db_path = os.path.join(base_dir, 'instance', 'simulador.db')
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
     try: cursor.execute("ALTER TABLE usuario ADD COLUMN is_admin BOOLEAN DEFAULT 0")
@@ -375,17 +377,30 @@ def mis_dudas():
 
 def limpiar_materia(materia):
     if materia and (materia.endswith('_I') or materia.endswith('_M') or materia.endswith('_A')):
-        return materia[:-2]
+        materia_limpia = materia[:-2]
+        if materia_limpia == 'Fisica':
+            return 'Física'
+        elif materia_limpia == 'Quimica':
+            return 'Química'
+        elif materia_limpia == 'Biologia':
+            return 'Biología'
+        return materia_limpia
     return materia
 
 def obtener_materia_area(materia, area):
     if materia in ['Física', 'Química', 'Biología'] and area:
+        base = materia
+        if materia == 'Física':
+            base = 'Fisica'
+        elif materia == 'Química':
+            base = 'Quimica'
+            
         if area == 'Ingeniería y Ciencias Físico Matemáticas':
-            return f"{materia}_I"
+            return f"{base}_I"
         elif area == 'Ciencias Médico Biológicas':
-            return f"{materia}_M"
+            return f"{base}_M"
         elif area == 'Ciencias Sociales y Administrativas':
-            return f"{materia}_A"
+            return f"{base}_A"
     return materia
 
 # --- RUTAS DE LOS MENÚS PRINCIPALES ---
