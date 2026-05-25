@@ -388,6 +388,19 @@ def mis_dudas():
     return render_template('mis_dudas.html', dudas=dudas, nivel=nivel)
 
 def limpiar_materia(materia):
+    if materia and materia.startswith('Matemáticas_'):
+        suffix = materia.split('_')[1]
+        mapping = {
+            'R': 'Razonamiento',
+            'A': 'Álgebra',
+            'T': 'Geometría y Trigonometría',
+            'G': 'Geometría Analítica',
+            'D': 'Cálculo Diferencial',
+            'I': 'Cálculo Integral',
+            'P': 'Probabilidad y Estadística'
+        }
+        return f"Matemáticas ({mapping.get(suffix, suffix)})"
+        
     if materia and (materia.endswith('_I') or materia.endswith('_M') or materia.endswith('_A')):
         materia_limpia = materia[:-2]
         if materia_limpia == 'Fisica':
@@ -400,6 +413,16 @@ def limpiar_materia(materia):
     return materia
 
 def obtener_materia_area(materia, area):
+    if materia and materia.startswith('Matemáticas ('):
+        suffix_name = materia.replace('Matemáticas (', '').replace(')', '')
+        reverse_mapping = {
+            'Razonamiento': 'R', 'Álgebra': 'A', 'Geometría y Trigonometría': 'T',
+            'Geometría Analítica': 'G', 'Cálculo Diferencial': 'D',
+            'Cálculo Integral': 'I', 'Probabilidad y Estadística': 'P'
+        }
+        suffix = reverse_mapping.get(suffix_name, suffix_name)
+        return f"Matemáticas_{suffix}"
+
     if materia in ['Física', 'Química', 'Biología'] and area:
         base = materia
         if materia == 'Física':
@@ -549,24 +572,20 @@ def iniciar_examen():
         if nivel == 'Superior':
             if area == 'Ciencias Médico Biológicas':
                 pesos = {
-                    'Matemáticas': 33/140, 'Competencia Escrita': 20/140,
-                    'Competencia Lectora': 20/140, 'Química': 17/140,
-                    'Física': 13/140, 'Historia': 10/140,
-                    'Inglés': 10/140, 'Biología': 17/140
+                    'Competencia Escrita': 20/140, 'Competencia Lectora': 20/140, 'Química': 17/140,
+                    'Física': 13/140, 'Historia': 10/140, 'Inglés': 10/140, 'Biología': 17/140
                 }
             else:
                 pesos = {
-                    'Matemáticas': 37/140, 'Competencia Escrita': 20/140,
-                    'Competencia Lectora': 20/140, 'Química': 17/140,
-                    'Física': 17/140, 'Historia': 10/140,
-                    'Inglés': 10/140, 'Biología': 9/140
+                    'Competencia Escrita': 20/140, 'Competencia Lectora': 20/140, 'Química': 17/140,
+                    'Física': 17/140, 'Historia': 10/140, 'Inglés': 10/140, 'Biología': 9/140
                 }
         else:
             pesos = {
-                'Matemáticas': 37/140, 'Competencia Escrita': 20/140,
-                'Competencia Lectora': 20/140, 'Química': 17/140,
-                'Física': 17/140, 'Historia': 10/140,
-                'Inglés': 10/140, 'Biología': 9/140,
+                'Matemáticas Básicas': 37/140, 'Competencia Escrita': 20/140,
+                'Competencia Lectora': 20/140, 'Química Básica': 17/140,
+                'Física Básica': 17/140, 'Historia de México': 10/140,
+                'Inglés': 10/140, 'Biología Básica': 9/140,
                 'Formación Cívica y Ética': 10/140, 'Español': 20/140 # Agregados para NMS
             }
 
@@ -579,9 +598,34 @@ def iniciar_examen():
                 materias_validas.append(mat)
 
         for mat in materias_validas:
+            # Omitimos auto-pick de matemáticas para asignarlas manualmente con sus cuotas
+            if nivel == 'Superior' and mat.startswith('Matemáticas_'):
+                continue
             p = Pregunta.query.filter_by(materia=mat, nivel=nivel).order_by(db.func.random()).first()
             if p:
                 preguntas_seleccionadas.append(p)
+                
+        # Asignación manual de cuotas de Matemáticas para Superior
+        if nivel == 'Superior':
+            math_dist = {}
+            if tiempo_minutos == 180:
+                if area == 'Ciencias Médico Biológicas':
+                    math_dist = {'Matemáticas_R': 4, 'Matemáticas_A': 5, 'Matemáticas_T': 5, 'Matemáticas_G': 5, 'Matemáticas_D': 5, 'Matemáticas_I': 5, 'Matemáticas_P': 4}
+                else:
+                    math_dist = {'Matemáticas_R': 5, 'Matemáticas_A': 5, 'Matemáticas_T': 5, 'Matemáticas_G': 5, 'Matemáticas_D': 6, 'Matemáticas_I': 6, 'Matemáticas_P': 5}
+            elif tiempo_minutos == 60:
+                math_dist = {'Matemáticas_R': 2, 'Matemáticas_A': 2, 'Matemáticas_T': 3, 'Matemáticas_G': 2, 'Matemáticas_D': 3, 'Matemáticas_I': 3, 'Matemáticas_P': 3}
+            elif tiempo_minutos == 30:
+                math_dist = {'Matemáticas_R': 1, 'Matemáticas_A': 1, 'Matemáticas_T': 1, 'Matemáticas_G': 1, 'Matemáticas_D': 2, 'Matemáticas_I': 2, 'Matemáticas_P': 1}
+            elif tiempo_minutos == 15:
+                math_dist = {'Matemáticas_I': 1, 'Matemáticas_D': 1}
+                otras_mat = ['Matemáticas_R', 'Matemáticas_A', 'Matemáticas_T', 'Matemáticas_G', 'Matemáticas_P']
+                for m in random.sample(otras_mat, 2):
+                    math_dist[m] = 1
+
+            for m_area, cant in math_dist.items():
+                extras = Pregunta.query.filter_by(materia=m_area, nivel=nivel).order_by(db.func.random()).limit(cant).all()
+                preguntas_seleccionadas.extend(extras)
 
         for materia, peso in pesos.items():
             if len(preguntas_seleccionadas) >= total_objetivo: break
@@ -683,10 +727,24 @@ def iniciar_examen():
             total_preguntas = sum([len(lec.preguntas) for lec in lecturas_seleccionadas])
             tiempo_minutos = int(total_preguntas * 1.5)
         else:
-            materia_real = obtener_materia_area(materia_elegida, area)
             cantidad = int(request.form.get('cantidad'))
             tiempo_minutos = int(cantidad * 1.5) 
-            preguntas_seleccionadas = Pregunta.query.filter_by(materia=materia_real, nivel=nivel).order_by(db.func.random()).limit(cantidad).all()
+            
+            if materia_elegida == 'Matemáticas' and nivel == 'Superior':
+                math_dist = {}
+                if cantidad == 10:
+                    math_dist = {'Matemáticas_R': 1, 'Matemáticas_A': 1, 'Matemáticas_T': 1, 'Matemáticas_G': 1, 'Matemáticas_D': 2, 'Matemáticas_I': 3, 'Matemáticas_P': 1}
+                elif cantidad == 20:
+                    math_dist = {'Matemáticas_R': 2, 'Matemáticas_A': 3, 'Matemáticas_T': 3, 'Matemáticas_G': 2, 'Matemáticas_D': 3, 'Matemáticas_I': 4, 'Matemáticas_P': 3}
+                elif cantidad == 30:
+                    math_dist = {'Matemáticas_R': 4, 'Matemáticas_A': 4, 'Matemáticas_T': 4, 'Matemáticas_G': 4, 'Matemáticas_D': 5, 'Matemáticas_I': 5, 'Matemáticas_P': 4}
+                
+                for m_area, cant in math_dist.items():
+                    extras = Pregunta.query.filter_by(materia=m_area, nivel=nivel).order_by(db.func.random()).limit(cant).all()
+                    preguntas_seleccionadas.extend(extras)
+            else:
+                materia_real = obtener_materia_area(materia_elegida, area)
+                preguntas_seleccionadas = Pregunta.query.filter_by(materia=materia_real, nivel=nivel).order_by(db.func.random()).limit(cantidad).all()
     
     random.shuffle(preguntas_seleccionadas)
     return render_template('examen.html', preguntas=preguntas_seleccionadas, lecturas=lecturas_seleccionadas, modalidad=modalidad, tiempo_minutos=tiempo_minutos, nivel=nivel)

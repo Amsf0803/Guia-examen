@@ -39,6 +39,12 @@
             .card-front, .card-back { grid-template-columns: 1fr; }
             .lectura-col { max-height: 40%; }
         }
+
+        /* Estilos de tabla */
+        table { border-collapse: collapse; width: 100%; margin: 15px 0; color: #333; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        tr:nth-child(even) { background-color: #fafafa; }
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/lightbox.css') }}">
 </head>
