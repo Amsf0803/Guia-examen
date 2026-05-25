@@ -783,7 +783,9 @@ def calificar():
             
             estadisticas_materias[materia_limpia]['total'] += 1
             
-            es_correcta = (respuesta_usuario == pregunta_db.respuesta_correcta)
+            es_correcta = False
+            if respuesta_usuario and pregunta_db.respuesta_correcta:
+                es_correcta = (respuesta_usuario.upper() == pregunta_db.respuesta_correcta.upper())
             en_blanco = (respuesta_usuario is None)
             
             if es_correcta and vio_ayuda == '0':

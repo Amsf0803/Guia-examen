@@ -390,17 +390,17 @@
                 <div class="opciones-revision">
                     {% for letra, texto_opcion in [('A', p.opcion_a), ('B', p.opcion_b), ('C', p.opcion_c), ('D',
                     p.opcion_d)] %}
-                    {% set es_elegida = (detalle.respuesta_usuario == letra) %}
-                    {% set es_la_correcta = (p.respuesta_correcta == letra) %}
-                    <div
-                        class="opcion-row {% if es_elegida and es_la_correcta %}elegida-correcta{% elif es_elegida and not es_la_correcta %}elegida-incorrecta{% endif %}">
+                    {% set letra_usuario = detalle.respuesta_usuario | upper if detalle.respuesta_usuario else None %}
+                    {% set es_la_correcta = (p.respuesta_correcta | upper == letra) %}
+                    {% set es_la_elegida = (letra_usuario == letra) %}
+                    <div class="opcion-row {% if es_la_elegida and es_la_correcta %}elegida-correcta{% elif es_la_elegida and not es_la_correcta %}elegida-incorrecta{% endif %}">
                         <div><strong>{{ letra }})</strong> {{ texto_opcion | safe }}</div>
                     </div>
                     {% endfor %}
                 </div>
                 {% if not detalle.es_correcta %}
                 <div class="feedback-box">
-                    <p style="color: #00509e;"><strong>Correcta: {{ p.respuesta_correcta }}</strong></p>
+                    <p style="color: #00509e;"><strong>Correcta: {{ p.respuesta_correcta | upper }}</strong></p>
                     {% if p.procedimiento %}<div>{{ p.procedimiento | safe }}</div>{% endif %}
                 </div>
                 {% endif %}
@@ -454,12 +454,12 @@
         <div class="opciones-revision">
             {% for letra, texto_opcion in [('A', p.opcion_a), ('B', p.opcion_b), ('C', p.opcion_c), ('D', p.opcion_d)]
             %}
-            {% set es_elegida = (detalle.respuesta_usuario == letra) %}
-            {% set es_la_correcta = (p.respuesta_correcta == letra) %}
-            <div
-                class="opcion-row {% if es_elegida and es_la_correcta %}elegida-correcta{% elif es_elegida and not es_la_correcta %}elegida-incorrecta{% endif %}">
+            {% set letra_usuario = detalle.respuesta_usuario | upper if detalle.respuesta_usuario else None %}
+            {% set es_la_correcta = (p.respuesta_correcta | upper == letra) %}
+            {% set es_la_elegida = (letra_usuario == letra) %}
+            <div class="opcion-row {% if es_la_elegida and es_la_correcta %}elegida-correcta{% elif es_la_elegida and not es_la_correcta %}elegida-incorrecta{% endif %}">
                 <div><strong>{{ letra }})</strong> {{ texto_opcion | safe }}</div>
-                {% if es_elegida %}<span style="font-size: 1.2em;">{% if es_la_correcta %}✔️{% else %}❌{% endif
+                {% if es_la_elegida %}<span style="font-size: 1.2em;">{% if es_la_correcta %}✔️{% else %}❌{% endif
                     %}</span>{% endif %}
             </div>
             {% endfor %}
@@ -467,7 +467,7 @@
 
         {% if not detalle.es_correcta %}
         <div class="feedback-box">
-            <p style="color: #00509e; font-size: 1.1em;"><strong>Respuesta correcta: {{ p.respuesta_correcta }}</strong>
+            <p style="color: #00509e; font-size: 1.1em;"><strong>Respuesta correcta: {{ p.respuesta_correcta | upper }}</strong>
             </p>
             {% if p.procedimiento %}<div>{{ p.procedimiento | safe }}</div>{% endif %}
         </div>

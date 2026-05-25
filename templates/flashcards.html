@@ -210,7 +210,7 @@
     <button class="btn-action" onclick="window.location.href = '/flashcards/{{ nivel }}{% if area %}?area={{ area }}{% endif %}';">Siguiente Tarjeta ➔</button>
 
     <script>
-        const respuestaCorrecta = "{{ pregunta.respuesta_correcta }}";
+        const respuestaCorrecta = "{{ pregunta.respuesta_correcta | upper }}";
 
         function verificarYVoltear() {
             let seleccionada = document.querySelector('input[name="res"]:checked');
