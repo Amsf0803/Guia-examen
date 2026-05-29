@@ -246,9 +246,9 @@
         <input type="hidden" name="ayuda_vista_{{ p.id }}" id="ayuda-flag-{{ p.id }}" value="0">
 
             {% if p.procedimiento %}
-                <button type="button" class="btn-ayuda" onclick="mostrarAyuda({{ p.id }}, this)">💡 Ver Procedimiento de Ayuda (Si lo ves se te contara como mala la pregunta aunque la respondas bien)</button>
+                <button type="button" class="btn-ayuda" onclick="mostrarAyuda('{{ p.id }}', this)">💡 Ver Procedimiento de Ayuda (Si lo ves se te contara como mala la pregunta aunque la respondas bien)</button>
                 <div class="procedimiento" id="ayuda-{{ p.id }}">
-                    <p>{{ p.procedimiento | safe }}</p>
+                    <p id="proc-texto-{{ p.id }}">Cargando...</p>
                 </div>
             {% else %}
                 <button type="button" class="btn-ayuda" onclick="mostrarAyuda({{ p.id }}, this)">📝 Agregar Procedimiento</button>
@@ -330,7 +330,7 @@
                     {% if p.procedimiento %}
                         <button type="button" class="btn-ayuda" onclick="mostrarAyuda('L_{{ p.id }}', this)">💡 Ayuda</button>
                         <div class="procedimiento" id="ayuda-L_{{ p.id }}">
-                            <p>{{ p.procedimiento | safe }}</p>
+                            <p id="proc-texto-L_{{ p.id }}">Cargando...</p>
                         </div>
                     {% else %}
                         <button type="button" class="btn-ayuda" onclick="mostrarAyuda('L_{{ p.id }}', this)">📝 Agregar Procedimiento</button>
@@ -475,12 +475,32 @@
     }
 
     // --- LÓGICA PARA MOSTRAR AYUDA ---
-    function mostrarAyuda(id, btn) {
+    async function mostrarAyuda(id, btn) {
         var div = document.getElementById('ayuda-' + id);
+        var pTexto = document.getElementById('proc-texto-' + id);
         div.style.display = 'block';
         document.getElementById('ayuda-flag-' + id).value = '1';
         btn.style.display = 'none';
-        if (window.MathJax) { MathJax.typesetPromise(); }
+        
+        if (!pTexto) return; // Es modo "Agregar Procedimiento"
+        
+        try {
+            const response = await fetch('/api/obtener_procedimiento', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            });
+            const data = await response.json();
+            if (data.procedimiento) {
+                pTexto.innerHTML = data.procedimiento;
+            } else {
+                pTexto.innerHTML = "No se pudo cargar el procedimiento.";
+            }
+            if (window.MathJax) { MathJax.typesetPromise(); }
+        } catch (e) {
+            console.error("Error cargando ayuda:", e);
+            pTexto.innerHTML = "Error de conexión.";
+        }
     }
 
     // --- LÓGICA DE MARCAR DUDAS ---

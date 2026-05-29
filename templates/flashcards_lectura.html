@@ -87,16 +87,14 @@
                     <br><br>
                     <a href="{{ url_for('menu_superior') if nivel == 'Superior' else url_for('menu_medio_superior') }}" style="color: #666;">Volver al Menú</a>
                 </div>
-                <div class="preguntas-col">
+                <div class="preguntas-col" id="soluciones-container">
                     {% for p in lectura.preguntas %}
                     <div class="pregunta-item">
                         <p><strong>{{ loop.index }}. {{ p.texto_pregunta | safe }}</strong></p>
-                        <p style="color: #28a745; font-weight: bold;">Correcta: {{ p.respuesta_correcta | upper }}</p>
-                        {% if p.procedimiento %}
-                        <div style="font-size: 0.9em; background: #f8f9fa; padding: 10px; border-radius: 4px; border-left: 3px solid #003366;">
-                            {{ p.procedimiento | safe }}
+                        <p style="color: #28a745; font-weight: bold;">Correcta: <span id="correcta-valor-L_{{ p.id }}">Cargando...</span></p>
+                        <div id="proc-container-L_{{ p.id }}" style="font-size: 0.9em; background: #f8f9fa; padding: 10px; border-radius: 4px; border-left: 3px solid #003366;">
+                            Cargando...
                         </div>
-                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -107,30 +105,75 @@
     <button class="btn-check" id="btn-check" onclick="validarYVoltear()">Verificar Respuestas</button>
 
     <script>
-        const respuestasCorrectas = {
+        const idsLectura = [
             {% for p in lectura.preguntas %}
-            "{{ p.id }}": "{{ p.respuesta_correcta | upper }}",
+            "L_{{ p.id }}",
             {% endfor %}
-        };
+        ];
 
-        function validarYVoltear() {
+        async function validarYVoltear() {
             let todasRespondidas = true;
-            // Validar visualmente en el frente antes de voltear
-            for (let id in respuestasCorrectas) {
-                const check = document.querySelector(`input[name="resp_${id}"]:checked`);
-                const item = document.getElementById(`item-${id}`);
+            let respuestasSeleccionadas = {};
+            
+            idsLectura.forEach(id => {
+                let realId = id.replace('L_', '');
+                const check = document.querySelector(`input[name="resp_${realId}"]:checked`);
+                const item = document.getElementById(`item-${realId}`);
                 
                 if (!check) {
                     item.style.backgroundColor = "#fff3cd";
                     todasRespondidas = false;
                 } else {
-                    const esCorrecta = (check.value.toUpperCase() === respuestasCorrectas[id].toUpperCase());
-                    item.classList.add(esCorrecta ? 'correcta' : 'incorrecta');
+                    respuestasSeleccionadas[id] = check.value;
                 }
-            }
+            });
 
             if (!todasRespondidas) {
                 if (!confirm("No has respondido todas las preguntas. ¿Quieres ver las soluciones de todos modos?")) return;
+            }
+
+            try {
+                const response = await fetch('/api/verificar_flashcard', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ preguntas: idsLectura })
+                });
+                const data = await response.json();
+                
+                idsLectura.forEach(id => {
+                    let realId = id.replace('L_', '');
+                    const item = document.getElementById(`item-${realId}`);
+                    const result = data[id];
+                    
+                    if (result) {
+                        const correcta = result.respuesta_correcta.toUpperCase();
+                        if (respuestasSeleccionadas[id]) {
+                            const esCorrecta = (respuestasSeleccionadas[id].toUpperCase() === correcta);
+                            item.classList.add(esCorrecta ? 'correcta' : 'incorrecta');
+                        }
+                        
+                        document.getElementById(`correcta-valor-${id}`).innerText = correcta;
+                        
+                        let procContainer = document.getElementById(`proc-container-${id}`);
+                        if (result.procedimiento && result.procedimiento.trim() !== '') {
+                            procContainer.innerHTML = result.procedimiento;
+                        } else {
+                            procContainer.innerHTML = "<em>No hay explicación detallada para esta pregunta.</em>";
+                            procContainer.style.background = "transparent";
+                            procContainer.style.borderLeft = "none";
+                            procContainer.style.color = "#888";
+                        }
+                    }
+                });
+
+                if (window.MathJax) {
+                    MathJax.typesetPromise();
+                }
+                
+            } catch (e) {
+                console.error("Error obteniendo respuestas:", e);
+                alert("Hubo un error al validar las respuestas. Intenta de nuevo.");
+                return;
             }
 
             document.getElementById('card').classList.add('flipped');

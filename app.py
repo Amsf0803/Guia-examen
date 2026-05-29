@@ -1,7 +1,7 @@
 import os
 import re
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, flash, session, abort
+from flask import Flask, render_template, request, redirect, url_for, flash, session, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -840,6 +840,44 @@ def calificar():
                             detalles_examen=detalles_examen, 
                             nivel=nivel
                             )
+
+
+@app.route('/api/verificar_flashcard', methods=['POST'])
+def verificar_flashcard():
+    data = request.json
+    lista_ids = data.get('preguntas', [])
+    resultados = {}
+    
+    for id_raw in lista_ids:
+        if str(id_raw).startswith('L_'):
+            real_id = int(str(id_raw).replace('L_', ''))
+            pregunta = db.session.get(PreguntaLectura, real_id)
+        else:
+            pregunta = db.session.get(Pregunta, int(id_raw))
+            
+        if pregunta:
+            resultados[str(id_raw)] = {
+                "respuesta_correcta": pregunta.respuesta_correcta,
+                "procedimiento": pregunta.procedimiento if pregunta.procedimiento else ""
+            }
+            
+    return jsonify(resultados)
+
+
+@app.route('/api/obtener_procedimiento', methods=['POST'])
+def obtener_procedimiento():
+    data = request.json
+    id_raw = data.get('id')
+    
+    if str(id_raw).startswith('L_'):
+        real_id = int(str(id_raw).replace('L_', ''))
+        pregunta = db.session.get(PreguntaLectura, real_id)
+    else:
+        pregunta = db.session.get(Pregunta, int(id_raw))
+        
+    if pregunta:
+        return jsonify({"procedimiento": pregunta.procedimiento if pregunta.procedimiento else ""})
+    return jsonify({"error": "No encontrado"}), 404
 
 
 @app.route('/guardar_procedimiento', methods=['POST'])

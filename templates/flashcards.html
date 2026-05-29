@@ -191,14 +191,10 @@
                 <div id="texto-resultado-usuario" style="text-align: center; font-size: 1.2em; font-weight: bold; margin-bottom: 20px;"></div>
                 
                 <h3 style="text-align: center; color: #555; margin-top: 0; margin-bottom: 5px;">Respuesta Correcta</h3>
-                <div class="answer-text">Opción: {{ pregunta.respuesta_correcta }}</div>
+                <div class="answer-text">Opción: <span id="respuesta-correcta-valor">Cargando...</span></div>
                 
-                {% if pregunta.procedimiento %}
-                    <h4 style="margin-bottom: 8px;">Procedimiento / Explicación:</h4>
-                    <div class="proc-box">{{ pregunta.procedimiento | safe }}</div>
-                {% else %}
-                    <div style="text-align: center; color: #888; font-style: italic; margin-top: 20px;">No hay explicación detallada para esta pregunta.</div>
-                {% endif %}
+                <h4 style="margin-bottom: 8px;">Procedimiento / Explicación:</h4>
+                <div id="procedimiento-container" class="proc-box">Cargando...</div>
                 
                 <button class="btn-flip" style="background-color: #6c757d; margin-top: 25px;" onclick="voltearAPregunta()">⬅ Voltear para ver Pregunta</button>
                 <button type="button" class="btn-reportar-fc" onclick="abrirReporte({{ pregunta.id }})">🚩 Reportar esta pregunta</button>
@@ -210,22 +206,12 @@
     <button class="btn-action" onclick="window.location.href = '/flashcards/{{ nivel }}{% if area %}?area={{ area }}{% endif %}';">Siguiente Tarjeta ➔</button>
 
     <script>
-        const respuestaCorrecta = "{{ pregunta.respuesta_correcta | upper }}";
+        const preguntaId = {{ pregunta.id }};
 
-        function verificarYVoltear() {
+        async function verificarYVoltear() {
             let seleccionada = document.querySelector('input[name="res"]:checked');
             let textoUsuario = document.getElementById('texto-resultado-usuario');
-            
-            if (seleccionada) {
-                let val = seleccionada.value;
-                if (val === respuestaCorrecta) {
-                    textoUsuario.innerHTML = `<span style="color: #28a745;">🎉 ¡Correcto! Elegiste la opción ${val}</span>`;
-                } else {
-                    textoUsuario.innerHTML = `<span style="color: #dc3545;">❌ Incorrecto. Elegiste la opción ${val}</span>`;
-                }
-            } else {
-                textoUsuario.innerHTML = `<span style="color: #ff9800;">⚠️ No seleccionaste ninguna opción</span>`;
-            }
+            let val = seleccionada ? seleccionada.value : null;
             
             // Bloquear las opciones para que no se puedan cambiar
             let opciones = document.querySelectorAll('input[name="res"]');
@@ -236,6 +222,54 @@
                 etiqueta.style.cursor = 'default';
                 etiqueta.style.pointerEvents = 'none';
             });
+            
+            try {
+                const response = await fetch('/api/verificar_flashcard', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ preguntas: [preguntaId] })
+                });
+                const data = await response.json();
+                const result = data[preguntaId];
+                
+                const respuestaCorrecta = result.respuesta_correcta;
+                
+                if (val) {
+                    if (val === respuestaCorrecta) {
+                        textoUsuario.innerHTML = `<span style="color: #28a745;">🎉 ¡Correcto! Elegiste la opción ${val}</span>`;
+                    } else {
+                        textoUsuario.innerHTML = `<span style="color: #dc3545;">❌ Incorrecto. Elegiste la opción ${val}</span>`;
+                    }
+                } else {
+                    textoUsuario.innerHTML = `<span style="color: #ff9800;">⚠️ No seleccionaste ninguna opción</span>`;
+                }
+                
+                document.getElementById('respuesta-correcta-valor').innerText = respuestaCorrecta;
+                
+                let procContainer = document.getElementById('procedimiento-container');
+                if (result.procedimiento && result.procedimiento.trim() !== '') {
+                    procContainer.innerHTML = result.procedimiento;
+                    procContainer.className = "proc-box";
+                    procContainer.style.textAlign = "left";
+                    procContainer.style.color = "inherit";
+                    procContainer.style.fontStyle = "normal";
+                    procContainer.style.marginTop = "0";
+                } else {
+                    procContainer.innerHTML = "No hay explicación detallada para esta pregunta.";
+                    procContainer.className = "";
+                    procContainer.style.textAlign = "center";
+                    procContainer.style.color = "#888";
+                    procContainer.style.fontStyle = "italic";
+                    procContainer.style.marginTop = "20px";
+                }
+                
+                if (window.MathJax) {
+                    MathJax.typesetPromise();
+                }
+            } catch (e) {
+                console.error("Error validando flashcard:", e);
+                textoUsuario.innerHTML = `<span style="color: #dc3545;">⚠️ Error de conexión</span>`;
+            }
             
             document.getElementById('flashcard').classList.add('is-flipped');
         }
