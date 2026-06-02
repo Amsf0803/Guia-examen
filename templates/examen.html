@@ -558,7 +558,7 @@
             const response = await fetch('/reportar_pregunta', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: parseInt(id), motivo: motivo })
+                body: JSON.stringify({ id: id, motivo: motivo })
             });
             if (response.ok) {
                 alert('✅ Reporte enviado. Un administrador lo revisará.');

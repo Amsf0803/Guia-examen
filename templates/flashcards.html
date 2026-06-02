@@ -26,11 +26,6 @@
         th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
         th { background-color: #f2f2f2; font-weight: bold; }
         tr:nth-child(even) { background-color: #fafafa; }
-            width: 100%;
-            max-width: 600px;
-            perspective: 1000px;
-            margin-top: 50px;
-        }
 
         /* La carta en sí, que girará usando Grid para ajustar el alto del más alto */
         .flashcard {
@@ -313,7 +308,7 @@
                 const response = await fetch('/reportar_pregunta', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: parseInt(id), motivo: motivo })
+                    body: JSON.stringify({ id: id, motivo: motivo })
                 });
                 if (response.ok) {
                     alert('✅ Reporte enviado. Un administrador lo revisará.');
